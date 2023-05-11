@@ -1,0 +1,7 @@
+channels:
+  - alvaro_sofar
+  - conda-forge
+  - defaults
+dependencies:
+  - cmake-xpack=3.20.6_2
+  - make=4.2.1
