@@ -52,10 +52,4 @@ TEST_F(NCPTest, BasicTest)
 
   // Try to send message without a tx callback
   EXPECT_EQ(bm_serial_tx(BM_NCP_DEBUG, buff, sizeof(buff)), BM_NCP_MISSING_CALLBACK);
-
-  // Testing CI
-  EXPECT_TRUE(false);
-
 }
-
-
