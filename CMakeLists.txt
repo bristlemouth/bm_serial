@@ -23,25 +23,29 @@ include(CTest)
 add_subdirectory("third_party/googletest")
 add_subdirectory("test")
 
-# if we are a subproject, export variables with the source files
 else()
-
-set(BM_SERIAL_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+#
+# if we are a subproject, export as a library
+# Use target_link_libraries(${EXECUTABLE} bm_serial) in parent CMakeLists.txt to use
+# Set target compiler flags with the BM_SERIAL_COMPILER_FLAGS variable
+#
+set(BM_SERIAL_DIR ${CMAKE_CURRENT_LIST_DIR})
+message(status "BM SERIAL DIR ${BM_SERIAL_DIR}")
 
 set(BM_SERIAL_FILES
     ${BM_SERIAL_DIR}/bm_serial.c
     ${BM_SERIAL_DIR}/crc16.c
-
-    PARENT_SCOPE)
+)
 
 set(BM_SERIAL_INCLUDES
     ${BM_SERIAL_DIR}
-    PARENT_SCOPE
     )
 
 add_library(bm_serial EXCLUDE_FROM_ALL ${BM_SERIAL_FILES})
-# target_compile_options(bm_serial PRIVATE ${BM_SERIAL_COMPILER_FLAGS})
-# target_compile_definitions(bm_serial PRIVATE ${BM_SERIAL_DEFINITIONS})
-target_include_directories(bm_serial PRIVATE ${BM_SERIAL_INCLUDES} )
+target_compile_options(bm_serial PRIVATE ${BM_SERIAL_COMPILER_FLAGS})
+target_compile_definitions(bm_serial PRIVATE ${BM_SERIAL_DEFINITIONS})
+target_include_directories(bm_serial PRIVATE ${BM_SERIAL_INCLUDES})
+
+set(BM_SERIAL_INCLUDES ${BM_SERIAL_INCLUDES} PARENT_SCOPE)
 
 endif()
