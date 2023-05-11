@@ -30,6 +30,10 @@ jobs:
       # Install latest cmake
       - uses: lukka/get-cmake@latest
 
+      - name: Checkout submodules
+        run: |
+          git submodule update --init third_party/googletest
+
       - name: Run tests
         run: |
           mkdir build
