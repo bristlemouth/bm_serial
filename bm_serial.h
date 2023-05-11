@@ -24,6 +24,9 @@ typedef struct {
 
   // Function called when a log request is received
   bool (*debug_fn)(const uint8_t *data, size_t len);
+
+  // Function called when a message to send over wireless network is received
+  bool (*net_msg_fn)(uint64_t node_id, const uint8_t *data, size_t len);
 } bm_serial_callbacks_t;
 
 typedef enum {

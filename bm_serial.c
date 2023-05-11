@@ -326,6 +326,23 @@ bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
         break;
       }
 
+      case BM_NCP_NET_MSG: {
+        if(_callbacks.net_msg_fn) {
+          uint32_t non_data_len = sizeof(bm_serial_packet_t) + sizeof(ncp_net_msg_header_t);
+          if(non_data_len > len) {
+            printf("Invalid message length!");
+            break;
+          }
+          ncp_net_msg_header_t *net_msg = (ncp_net_msg_header_t *)packet->payload;
+
+          uint32_t data_len = len - non_data_len;
+          _callbacks.net_msg_fn(net_msg->node_id,
+                                net_msg->data,
+                                data_len);
+        }
+        break;
+      }
+
       default: {
         printf("Header->type %u\n", packet->type);
         printf("Wrong message type!\n");
