@@ -29,12 +29,8 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v3
 
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          miniconda-version: "latest"
-          activate-environment: bm_serial
-          environment-file: environment_ci.yml
-          auto-activate-base: false
+      # Install latest cmake
+      - uses: lukka/get-cmake@latest
 
       - name: Run tests
         run: |
