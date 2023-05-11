@@ -16,9 +16,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on:
-      - self-hosted
-      # Uncomment to run on github's infrastructure (and comment out self-hosted above!)
-      # - ubuntu-latest
+      - ubuntu-latest
 
     defaults:
       run:
@@ -38,4 +36,4 @@ jobs:
           cd build
           cmake ../
           make -j
-          ctest
+          ctest --output-on-failure
