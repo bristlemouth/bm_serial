@@ -1,3 +1,5 @@
+#pragma once
+
 #include <stdint.h>
 #include <stdio.h>
 #include "bm_serial_messages.h"
