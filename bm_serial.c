@@ -116,7 +116,7 @@ bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *payload,
     packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     uint16_t bm_serial_message_len = sizeof(bm_serial_packet_t) + len;
-    if(!_callbacks.tx_fn(bm_serial_tx_buff, bm_serial_message_len)) {
+    if(!_callbacks.tx_fn((uint8_t *)packet, bm_serial_message_len)) {
       rval = BM_NCP_TX_ERR;
 
       break;
@@ -165,7 +165,7 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
 
     packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if(!_callbacks.tx_fn(bm_serial_tx_buff, message_len)) {
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_NCP_TX_ERR;
       break;
     }
@@ -214,7 +214,7 @@ static bm_serial_error_e _bm_serial_sub_unsub(const char *topic, uint16_t topic_
 
     packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if(!_callbacks.tx_fn(bm_serial_tx_buff, message_len)) {
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_NCP_TX_ERR;
       break;
     }
@@ -248,9 +248,38 @@ bm_serial_error_e bm_serial_unsub(const char *topic, uint16_t topic_len) {
  return _bm_serial_sub_unsub(topic, topic_len, false);
 }
 
+bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
+  bm_serial_error_e rval = BM_NCP_OK;
+
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_rtc_t);
+
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_NCP_RTC_SET, 0, message_len);
+
+
+    if(!packet) {
+      rval = BM_NCP_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_serial_rtc_t *rtc_header = (bm_serial_rtc_t *)packet->payload;
+    memcpy(&rtc_header->time, time, sizeof(bm_serial_time_t));
+
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_NCP_TX_ERR;
+      break;
+    }
+
+  } while(0);
+
+  return rval;
+}
+
 // Process bm_serial packet (not COBS anymore!)
-bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
-  bool rval = false;
+bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
+  bm_serial_error_e rval = BM_NCP_OK;
 
   // calc the crc16 and compare
   uint16_t crc16_pre = packet->crc16;
@@ -259,7 +288,7 @@ bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
     uint16_t crc16_post = crc16_ccitt(0, (uint8_t *)packet, len);
 
     if (crc16_post != crc16_pre) {
-      printf("CRC16 invalid!\n");
+      rval = BM_NCP_CRC_ERR;
       break;
     }
 
@@ -282,7 +311,7 @@ bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
         // (would result in overflow when subtracting from len to determine data len)
         uint32_t non_data_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_pub_header_t) + pub_header->topic_len;
         if(non_data_len > len) {
-          printf("Invalid topic length!");
+          rval = BM_NCP_INVALID_TOPIC_LEN;
           break;
         }
 
@@ -328,12 +357,12 @@ bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
 
       case BM_NCP_NET_MSG: {
         if(_callbacks.net_msg_fn) {
-          uint32_t non_data_len = sizeof(bm_serial_packet_t) + sizeof(ncp_net_msg_header_t);
+          uint32_t non_data_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_net_msg_header_t);
           if(non_data_len > len) {
-            printf("Invalid message length!");
+            rval = BM_NCP_INVALID_MSG_LEN;
             break;
           }
-          ncp_net_msg_header_t *net_msg = (ncp_net_msg_header_t *)packet->payload;
+          bm_serial_net_msg_header_t *net_msg = (bm_serial_net_msg_header_t *)packet->payload;
 
           uint32_t data_len = len - non_data_len;
           _callbacks.net_msg_fn(net_msg->node_id,
@@ -343,9 +372,16 @@ bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
         break;
       }
 
+      case BM_NCP_RTC_SET: {
+        if(_callbacks.rtc_set_fn) {
+          bm_serial_rtc_t *rtc_msg = (bm_serial_rtc_t *)packet->payload;
+          _callbacks.rtc_set_fn(&rtc_msg->time);
+        }
+        break;
+      }
+
       default: {
-        printf("Header->type %u\n", packet->type);
-        printf("Wrong message type!\n");
+        rval = BM_NCP_UNSUPPORTED_MSG;
         break;
       }
     }
