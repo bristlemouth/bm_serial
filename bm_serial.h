@@ -32,21 +32,23 @@ typedef struct {
 
   // Function called to set RTC on device
   bool (*rtc_set_fn)(bm_serial_time_t *time);
+
+  bool (*self_test_fn)(uint64_t node_id, uint32_t result);
 } bm_serial_callbacks_t;
 
 typedef enum {
-  BM_NCP_OK = 0,
-  BM_NCP_NULL_BUFF = -1,
-  BM_NCP_OVERFLOW = -2,
-  BM_NCP_MISSING_CALLBACK = -3,
-  BM_NCP_OUT_OF_MEMORY = -4,
-  BM_NCP_TX_ERR = -5,
-  BM_NCP_CRC_ERR = -6,
-  BM_NCP_UNSUPPORTED_MSG = -7,
-  BM_NCP_INVALID_TOPIC_LEN = -8,
-  BM_NCP_INVALID_MSG_LEN = -9,
+  BM_SERIAL_OK = 0,
+  BM_SERIAL_NULL_BUFF = -1,
+  BM_SERIAL_OVERFLOW = -2,
+  BM_SERIAL_MISSING_CALLBACK = -3,
+  BM_SERIAL_OUT_OF_MEMORY = -4,
+  BM_SERIAL_TX_ERR = -5,
+  BM_SERIAL_CRC_ERR = -6,
+  BM_SERIAL_UNSUPPORTED_MSG = -7,
+  BM_SERIAL_INVALID_TOPIC_LEN = -8,
+  BM_SERIAL_INVALID_MSG_LEN = -9,
 
-  BM_NCP_MISC_ERR,
+  BM_SERIAL_MISC_ERR,
 } bm_serial_error_e;
 
 void bm_serial_set_callbacks(bm_serial_callbacks_t *callbacks);
@@ -57,6 +59,7 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
 bm_serial_error_e bm_serial_sub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_unsub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time);
+bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result);
 
 #ifdef __cplusplus
 }
