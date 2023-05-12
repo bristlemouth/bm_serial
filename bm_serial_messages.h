@@ -4,15 +4,16 @@
 #include <stdint.h>
 
 typedef enum {
-  BM_NCP_DEBUG = 0x00,
-  BM_NCP_ACK = 0x01,
+  BM_SERIAL_DEBUG = 0x00,
+  BM_SERIAL_ACK = 0x01,
 
-  BM_NCP_PUB = 0x02,
-  BM_NCP_SUB = 0x03,
-  BM_NCP_UNSUB = 0x04,
-  BM_NCP_LOG = 0x05,
-  BM_NCP_NET_MSG = 0x06,
-  BM_NCP_RTC_SET = 0x07,
+  BM_SERIAL_PUB = 0x02,
+  BM_SERIAL_SUB = 0x03,
+  BM_SERIAL_UNSUB = 0x04,
+  BM_SERIAL_LOG = 0x05,
+  BM_SERIAL_NET_MSG = 0x06,
+  BM_SERIAL_RTC_SET = 0x07,
+  BM_SERIAL_SELF_TEST = 0x08,
 
 } bm_serial_message_t;
 
@@ -60,3 +61,10 @@ typedef struct {
 
   bm_serial_time_t time;
 } __attribute__ ((packed)) bm_serial_rtc_t;
+
+typedef struct {
+  // Node id of unit reporting test (leave blank for test request)
+  uint64_t node_id;
+  // Flags for self test result
+  uint32_t result;
+} __attribute__ ((packed)) bm_serial_self_test_t;

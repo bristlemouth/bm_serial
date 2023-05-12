@@ -64,14 +64,14 @@ bool fake_tx_fn(const uint8_t *buff, size_t len) {
 
 TEST_F(NCPTest, ErrorTests) {
   // Try to transmit null buffer
-  EXPECT_EQ(bm_serial_tx(BM_NCP_DEBUG, NULL, 0), BM_NCP_NULL_BUFF);
+  EXPECT_EQ(bm_serial_tx(BM_SERIAL_DEBUG, NULL, 0), BM_SERIAL_NULL_BUFF);
 
   uint8_t buff[128];
   // Try to send a message that's too big
-  EXPECT_EQ(bm_serial_tx(BM_NCP_DEBUG, buff, 1024*10), BM_NCP_OVERFLOW);
+  EXPECT_EQ(bm_serial_tx(BM_SERIAL_DEBUG, buff, 1024*10), BM_SERIAL_OVERFLOW);
 
   // Try to send message without a tx callback
-  EXPECT_EQ(bm_serial_tx(BM_NCP_DEBUG, buff, sizeof(buff)), BM_NCP_MISSING_CALLBACK);
+  EXPECT_EQ(bm_serial_tx(BM_SERIAL_DEBUG, buff, sizeof(buff)), BM_SERIAL_MISSING_CALLBACK);
 }
 
 // static bool fake_pub_fn(const char *topic, uint16_t topic_len, uint64_t node_id, const uint8_t *payload, size_t len) {
@@ -103,12 +103,12 @@ TEST_F(NCPTest, SubUnsubTests) {
   bm_serial_set_callbacks(&_callbacks);
 
   fake_sub_called = false;
-  EXPECT_EQ(bm_serial_sub("fake_sub_topic", sizeof("fake_sub_topic")), BM_NCP_OK);
+  EXPECT_EQ(bm_serial_sub("fake_sub_topic", sizeof("fake_sub_topic")), BM_SERIAL_OK);
   EXPECT_TRUE(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len));
   EXPECT_TRUE(fake_sub_called);
 
   fake_unsub_called = false;
-  EXPECT_EQ(bm_serial_unsub("fake_unsub_topic", sizeof("fake_unsub_topic")), BM_NCP_OK);
+  EXPECT_EQ(bm_serial_unsub("fake_unsub_topic", sizeof("fake_unsub_topic")), BM_SERIAL_OK);
   EXPECT_TRUE(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len));
   EXPECT_TRUE(fake_unsub_called);
 }
@@ -135,7 +135,7 @@ TEST_F(NCPTest, RTCTest) {
   rtc_time.minute = 15;
   rtc_time.second = 10;
   rtc_time.us = 123456;
-  EXPECT_EQ(bm_serial_set_rtc(&rtc_time), BM_NCP_OK);
+  EXPECT_EQ(bm_serial_set_rtc(&rtc_time), BM_SERIAL_OK);
   EXPECT_TRUE(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len));
   EXPECT_TRUE(fake_rtc_called);
 }
