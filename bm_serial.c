@@ -296,7 +296,7 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_self_test_t);
 
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_RTC_SET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_SELF_TEST, 0, message_len);
 
 
     if(!packet) {
