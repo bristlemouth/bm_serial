@@ -13,7 +13,13 @@ set(CMAKE_CXX_EXTENSIONS ON)
 
 # If we're not a subproject, build the tests
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-  add_compile_options(-Wall -Wextra -Werror)
+  add_compile_options(
+    -Wall
+    -Wextra
+    -Werror
+    -O0
+    -g
+    )
 message(STATUS "Native compiling - Building Tests")
 set(SRC_DIR ${CMAKE_SOURCE_DIR})
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)

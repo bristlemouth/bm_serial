@@ -29,6 +29,9 @@ typedef struct {
 
   // Function called when a message to send over wireless network is received
   bool (*net_msg_fn)(uint64_t node_id, const uint8_t *data, size_t len);
+
+  // Function called to set RTC on device
+  bool (*rtc_set_fn)(bm_serial_time_t *time);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -38,17 +41,22 @@ typedef enum {
   BM_NCP_MISSING_CALLBACK = -3,
   BM_NCP_OUT_OF_MEMORY = -4,
   BM_NCP_TX_ERR = -5,
+  BM_NCP_CRC_ERR = -6,
+  BM_NCP_UNSUPPORTED_MSG = -7,
+  BM_NCP_INVALID_TOPIC_LEN = -8,
+  BM_NCP_INVALID_MSG_LEN = -9,
 
   BM_NCP_MISC_ERR,
 } bm_serial_error_e;
 
 void bm_serial_set_callbacks(bm_serial_callbacks_t *callbacks);
-bool bm_serial_process_packet(bm_serial_packet_t *packet, size_t len);
+bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len);
 bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *buff, size_t len);
 
 bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t topic_len, const uint8_t *data, uint16_t data_len);
 bm_serial_error_e bm_serial_sub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_unsub(const char *topic, uint16_t topic_len);
+bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time);
 
 #ifdef __cplusplus
 }

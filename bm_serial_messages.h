@@ -12,6 +12,8 @@ typedef enum {
   BM_NCP_UNSUB = 0x04,
   BM_NCP_LOG = 0x05,
   BM_NCP_NET_MSG = 0x06,
+  BM_NCP_RTC_SET = 0x07,
+
 } bm_serial_message_t;
 
 typedef struct {
@@ -40,4 +42,21 @@ typedef struct {
   // Will use later to signify if this should go out cellular/satellite or both
   uint8_t flags;
   uint8_t data[0];
-} __attribute__ ((packed)) ncp_net_msg_header_t;
+} __attribute__ ((packed)) bm_serial_net_msg_header_t;
+
+typedef struct {
+  uint16_t year;
+  uint8_t month;
+  uint8_t day;
+  uint8_t hour;
+  uint8_t minute;
+  uint8_t second;
+  uint32_t us;
+} __attribute__ ((packed)) bm_serial_time_t;
+
+typedef struct {
+  // Can be used to determine time source and other things
+  uint32_t flags;
+
+  bm_serial_time_t time;
+} __attribute__ ((packed)) bm_serial_rtc_t;
