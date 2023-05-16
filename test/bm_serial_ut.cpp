@@ -196,6 +196,11 @@ TEST_F(NCPTest, DFUTest) {
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_dfu_chunk_called);
 
+  fake_dfu_chunk_called = false;
+  EXPECT_EQ(bm_serial_dfu_send_chunk(0, 0, NULL), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_dfu_chunk_called);
+
   fake_dfu_finish_called = false;
   EXPECT_EQ(bm_serial_dfu_send_finish(0xdeadbaaddaadbead, 1, 0), BM_SERIAL_OK);
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
