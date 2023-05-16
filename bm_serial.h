@@ -73,7 +73,7 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result);
 
 bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start);
 bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8_t * data);
-bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t err);
+bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t status);
 
 #ifdef __cplusplus
 }

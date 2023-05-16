@@ -371,7 +371,7 @@ bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8
   return rval;
 }
 
-bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t err) {
+bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t status) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_dfu_finish_t);
@@ -383,7 +383,7 @@ bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint
     }
 
     bm_serial_dfu_finish_t *dfu_finish = (bm_serial_dfu_finish_t *)packet->payload;
-    dfu_finish->err = err;
+    dfu_finish->dfu_status = status;
     dfu_finish->node_id = node_id;
     dfu_finish->success = success;
     packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
@@ -526,7 +526,7 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       case BM_SERIAL_DFU_RESULT: {
         if(_callbacks.dfu_end_fn) {
           bm_serial_dfu_finish_t* dfu_end= (bm_serial_dfu_finish_t*)packet->payload;
-          _callbacks.dfu_end_fn(dfu_end->node_id, dfu_end->success, dfu_end->err);
+          _callbacks.dfu_end_fn(dfu_end->node_id, dfu_end->success, dfu_end->dfu_status);
         }
         break;
       }

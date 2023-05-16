@@ -107,5 +107,5 @@ typedef struct {
   // success of dfu
   bool success;
   // Errors for dfu result
-  uint32_t err;
+  uint32_t dfu_status;
 } __attribute__ ((packed)) bm_serial_dfu_finish_t;
