@@ -320,6 +320,82 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
   return rval;
 }
 
+bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_dfu_start_t);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DFU_START, 0, message_len);
+
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_serial_dfu_start_t *msg_start = (bm_serial_dfu_start_t *)packet->payload;
+    memcpy(msg_start, dfu_start, sizeof(bm_serial_dfu_start_t));
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+
+  } while(0);
+  return rval;
+}
+
+bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8_t * data) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_dfu_chunk_t) + length;
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DFU_CHUNK, 0, message_len);
+
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_serial_dfu_chunk_t *dfu_chunk = (bm_serial_dfu_chunk_t *)packet->payload;
+    dfu_chunk->offset = offset;
+    dfu_chunk->length = length;
+    memcpy(dfu_chunk->data, data, length);
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+
+  } while(0);
+  return rval;
+}
+
+bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t status) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_dfu_finish_t);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DFU_RESULT, 0, message_len);
+
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_serial_dfu_finish_t *dfu_finish = (bm_serial_dfu_finish_t *)packet->payload;
+    dfu_finish->dfu_status = status;
+    dfu_finish->node_id = node_id;
+    dfu_finish->success = success;
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+  } while(0);
+  return rval;
+}
+
 // Process bm_serial packet (not COBS anymore!)
 bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
   bm_serial_error_e rval = BM_SERIAL_OK;
@@ -431,13 +507,36 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         break;
       }
 
+      case BM_SERIAL_DFU_START: {
+        if(_callbacks.dfu_start_fn){
+          bm_serial_dfu_start_t *dfu_start = ( bm_serial_dfu_start_t *)packet->payload;
+          _callbacks.dfu_start_fn(dfu_start);
+        }
+        break;
+      }
+
+      case BM_SERIAL_DFU_CHUNK: {
+        if(_callbacks.dfu_chunk_fn) {
+          bm_serial_dfu_chunk_t* dfu_chunk = (bm_serial_dfu_chunk_t*)packet->payload;
+          _callbacks.dfu_chunk_fn(dfu_chunk->offset, dfu_chunk->length, dfu_chunk->data);
+        }
+        break;
+      }
+
+      case BM_SERIAL_DFU_RESULT: {
+        if(_callbacks.dfu_end_fn) {
+          bm_serial_dfu_finish_t* dfu_end= (bm_serial_dfu_finish_t*)packet->payload;
+          _callbacks.dfu_end_fn(dfu_end->node_id, dfu_end->success, dfu_end->dfu_status);
+        }
+        break;
+      }
+
       default: {
         rval = BM_SERIAL_UNSUPPORTED_MSG;
         break;
       }
     }
 
-    rval = true;
   } while(0);
 
   return rval;

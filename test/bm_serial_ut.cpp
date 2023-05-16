@@ -104,12 +104,12 @@ TEST_F(NCPTest, SubUnsubTests) {
 
   fake_sub_called = false;
   EXPECT_EQ(bm_serial_sub("fake_sub_topic", sizeof("fake_sub_topic")), BM_SERIAL_OK);
-  EXPECT_TRUE(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len));
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_sub_called);
 
   fake_unsub_called = false;
   EXPECT_EQ(bm_serial_unsub("fake_unsub_topic", sizeof("fake_unsub_topic")), BM_SERIAL_OK);
-  EXPECT_TRUE(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len));
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len),BM_SERIAL_OK);
   EXPECT_TRUE(fake_unsub_called);
 }
 
@@ -136,7 +136,68 @@ TEST_F(NCPTest, RTCTest) {
   rtc_time.second = 10;
   rtc_time.us = 123456;
   EXPECT_EQ(bm_serial_set_rtc(&rtc_time), BM_SERIAL_OK);
-  EXPECT_TRUE(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len));
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_rtc_called);
 }
 
+static bool fake_dfu_start_called;
+bool dfu_start_fn(bm_serial_dfu_start_t *start) {
+  (void)start;
+
+  fake_dfu_start_called = true;
+  return true;
+}
+
+static bool fake_dfu_chunk_called;
+bool dfu_chunk_fun(uint32_t offset, size_t length, uint8_t * data) {
+  (void)offset;
+  (void)length;
+  (void)data;
+
+  fake_dfu_chunk_called = true;
+  return true;
+}
+
+static bool fake_dfu_finish_called;;
+bool dfu_finish_fn(uint64_t node_id, bool success, uint32_t err) {
+  (void)node_id;
+  (void) success;
+  (void) err;
+
+  fake_dfu_finish_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, DFUTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.dfu_start_fn = dfu_start_fn;
+  _callbacks.dfu_chunk_fn = dfu_chunk_fun;
+  _callbacks.dfu_end_fn = dfu_finish_fn;
+  bm_serial_set_callbacks(&_callbacks);
+
+  fake_dfu_start_called = false;
+  bm_serial_dfu_start_t start = {
+   .node_id = 0xdeaddeaddeaddead,
+   .image_size = 2048,
+   .chunk_size = 512,
+   .crc16 = 0xbeef,
+   .major_ver = 2,
+   .minor_ver = 1,
+   .filter_key = 0,
+   .gitSHA = 0x12345678,
+  };
+  EXPECT_EQ(bm_serial_dfu_send_start(&start), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_dfu_start_called);
+
+  fake_dfu_chunk_called = false;
+  uint8_t buf = 1;
+  EXPECT_EQ(bm_serial_dfu_send_chunk(0, sizeof(buf), &buf), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_dfu_chunk_called);
+
+  fake_dfu_finish_called = false;
+  EXPECT_EQ(bm_serial_dfu_send_finish(0xdeadbaaddaadbead, 1, 0), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_dfu_finish_called);
+}
