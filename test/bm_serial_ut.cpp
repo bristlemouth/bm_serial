@@ -140,3 +140,31 @@ TEST_F(NCPTest, RTCTest) {
   EXPECT_TRUE(fake_rtc_called);
 }
 
+static bool fake_dfu_start_called;
+bool dfu_start_fn(bm_serial_dfu_start_t *start) {
+  (void)start;
+
+  fake_dfu_start_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, DFUTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.dfu_start_fn = dfu_start_fn;
+  bm_serial_set_callbacks(&_callbacks);
+
+  fake_dfu_start_called = false;
+  bm_serial_dfu_start_t start = {
+   .node_id = 0xdeaddeaddeaddead,
+   .image_size = 2048,
+   .chunk_size = 512,
+   .crc16 = 0xbeef,
+   .major_ver = 2,
+   .minor_ver = 1,
+   .filter_key = 0,
+   .gitSHA = 0x12345678;
+  };
+  EXPECT_EQ(bm_serial_dfu_start_t(&start), BM_SERIAL_OK);
+  EXPECT_TRUE(bm_serial_process_packet((bm_serial_dfu_start_t *)serial_tx_buff, serial_tx_buff_len));
+  EXPECT_TRUE(fake_dfu_start_called);
+}
