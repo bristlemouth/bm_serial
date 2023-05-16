@@ -333,6 +333,7 @@ bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start) {
 
     bm_serial_dfu_start_t *msg_start = (bm_serial_dfu_start_t *)packet->payload;
     memcpy(msg_start, dfu_start, sizeof(bm_serial_dfu_start_t));
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -359,6 +360,7 @@ bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8
     dfu_chunk->offset = offset;
     dfu_chunk->length = length;
     memcpy(dfu_chunk->data, data, length);
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -384,6 +386,7 @@ bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint
     dfu_finish->err = err;
     dfu_finish->node_id = node_id;
     dfu_finish->success = success;
+    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -534,7 +537,6 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       }
     }
 
-    rval = true;
   } while(0);
 
   return rval;
