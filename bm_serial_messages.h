@@ -92,6 +92,7 @@ typedef struct {
   uint32_t gitSHA;
 } __attribute__ ((packed)) bm_serial_dfu_start_t;
 
+#define DFU_CHUNK_NAK_BITFLAG (1<<31)
 typedef struct {
   // offset from image start
   uint32_t offset;
