@@ -15,6 +15,9 @@ typedef enum {
   BM_SERIAL_RTC_SET = 0x07,
   BM_SERIAL_SELF_TEST = 0x08,
 
+  BM_SERIAL_DFU_START = 0x30,
+  BM_SERIAL_DFU_CHUNK = 0x31,
+  BM_SERIAL_DFU_RESULT = 0x32,
 } bm_serial_message_t;
 
 typedef struct {
@@ -68,3 +71,41 @@ typedef struct {
   // Flags for self test result
   uint32_t result;
 } __attribute__ ((packed)) bm_serial_self_test_t;
+
+// DFU BELOW HERE.
+typedef struct {
+  // Node id of unit for update
+  uint64_t node_id;
+  // size of image to update
+  uint32_t image_size;
+  // size of chunks to send
+  uint16_t chunk_size;
+  // crc16
+  uint16_t crc16;
+  // major version
+  uint8_t major_ver;
+  // minor version
+  uint8_t minor_ver;
+  // filter for update
+  uint32_t filter_key; 
+  // git hash 
+  uint32_t gitSHA;
+} __attribute__ ((packed)) bm_serial_dfu_start_t;
+
+typedef struct {
+  // offset from image start
+  uint32_t offset;
+  // data length
+  uint32_t length;
+  // data packet
+  uint8_t data[0];
+} __attribute__ ((packed)) bm_serial_dfu_chunk_t;
+
+typedef struct {
+  // Node id of unit reporting test (leave blank for test request)
+  uint64_t node_id;
+  // success of dfu
+  bool success;
+  // Errors for dfu result
+  uint32_t err;
+} __attribute__ ((packed)) bm_serial_dfu_finish_t;

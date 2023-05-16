@@ -33,7 +33,17 @@ typedef struct {
   // Function called to set RTC on device
   bool (*rtc_set_fn)(bm_serial_time_t *time);
 
+  // Function called when self test is received.
   bool (*self_test_fn)(uint64_t node_id, uint32_t result);
+
+  // Function called when dfu start message is recieved.
+  bool (*dfu_start_fn)(bm_serial_dfu_start_t *dfu_start);
+
+  // Function called when a dfu chunk is recieved.
+  bool (*dfu_chunk_fn)(uint32_t offset, size_t length, uint8_t * data);
+
+  // Function called when a dfu end is received.
+  bool (*dfu_end_fn)(uint64_t node_id, bool success, uint32_t err);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -60,6 +70,10 @@ bm_serial_error_e bm_serial_sub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_unsub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time);
 bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result);
+
+bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start);
+bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8_t * data);
+bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t err);
 
 #ifdef __cplusplus
 }
