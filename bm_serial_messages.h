@@ -110,3 +110,17 @@ typedef struct {
   // Errors for dfu result
   uint32_t dfu_status;
 } __attribute__ ((packed)) bm_serial_dfu_finish_t;
+
+typedef enum {
+    BM_NETWORK_TYPE_NONE = 0,
+    BM_NETWORK_TYPE_IRIDIUM = (1 << 1),
+    BM_NETWORK_TYPE_CELLULAR = (1 << 2),
+    BM_NETWORK_TYPE_ALL = BM_NETWORK_TYPE_IRIDIUM | BM_NETWORK_TYPE_CELLULAR,
+} bm_serial_network_type_e;
+
+typedef struct {
+    // Network type to send over.
+    bm_serial_network_type_e type;
+    // Data 
+    uint8_t data[0];
+} __attribute__((packed)) bm_serial_network_data_header_t;
