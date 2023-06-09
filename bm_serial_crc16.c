@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-#include "crc.h"
+#include "bm_serial_crc.h"
 
-uint16_t crc16_ccitt(uint16_t seed, const uint8_t *src, size_t len) {
+uint16_t bm_serial_crc16_ccitt(uint16_t seed, const uint8_t *src, size_t len) {
   for (; len > 0; len--) {
     uint8_t e, f;
 

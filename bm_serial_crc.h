@@ -7,7 +7,7 @@
 extern "C" {
 #endif
 
-uint16_t crc16_ccitt(uint16_t seed, const uint8_t *src, size_t len);
+uint16_t bm_serial_crc16_ccitt(uint16_t seed, const uint8_t *src, size_t len);
 
 #ifdef __cplusplus
 }

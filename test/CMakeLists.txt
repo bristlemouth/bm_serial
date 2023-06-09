@@ -14,7 +14,7 @@ target_sources(bm_serial_tests
     ${SRC_DIR}/bm_serial.c
 
     # Supporting files
-    ${SRC_DIR}/crc16.c
+    ${SRC_DIR}/bm_serial_crc16.c
 
     # Stubs
 

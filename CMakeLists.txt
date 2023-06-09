@@ -40,7 +40,7 @@ message(status "BM SERIAL DIR ${BM_SERIAL_DIR}")
 
 set(BM_SERIAL_FILES
     ${BM_SERIAL_DIR}/bm_serial.c
-    ${BM_SERIAL_DIR}/crc16.c
+    ${BM_SERIAL_DIR}/bm_serial_crc16.c
 )
 
 set(BM_SERIAL_INCLUDES
