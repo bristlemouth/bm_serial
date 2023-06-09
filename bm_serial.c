@@ -1,6 +1,6 @@
 #include <string.h>
 #include "bm_serial.h"
-#include "crc.h"
+#include "bm_serial_crc.h"
 
 #define MAX_TOPIC_LEN 64
 
@@ -113,7 +113,7 @@ bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *payload,
     }
     memcpy(packet->payload, payload, len);
 
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     uint16_t bm_serial_message_len = sizeof(bm_serial_packet_t) + len;
     if(!_callbacks.tx_fn((uint8_t *)packet, bm_serial_message_len)) {
@@ -163,7 +163,7 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
       memcpy(&pub_header->topic[topic_len], data, data_len);
     }
 
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -212,7 +212,7 @@ static bm_serial_error_e _bm_serial_sub_unsub(const char *topic, uint16_t topic_
     sub_header->topic_len = topic_len;
     memcpy(sub_header->topic, topic, topic_len);
 
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -271,7 +271,7 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
     bm_serial_rtc_t *rtc_header = (bm_serial_rtc_t *)packet->payload;
     memcpy(&rtc_header->time, time, sizeof(bm_serial_time_t));
 
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -308,7 +308,7 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
     self_test->node_id = node_id;
     self_test->result = result;
 
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -333,7 +333,7 @@ bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start) {
 
     bm_serial_dfu_start_t *msg_start = (bm_serial_dfu_start_t *)packet->payload;
     memcpy(msg_start, dfu_start, sizeof(bm_serial_dfu_start_t));
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -360,7 +360,7 @@ bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8
     dfu_chunk->offset = offset;
     dfu_chunk->length = length;
     memcpy(dfu_chunk->data, data, length);
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -386,7 +386,7 @@ bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint
     dfu_finish->dfu_status = status;
     dfu_finish->node_id = node_id;
     dfu_finish->success = success;
-    packet->crc16 = crc16_ccitt(0, (uint8_t *)packet, message_len);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -404,7 +404,7 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
   uint16_t crc16_pre = packet->crc16;
   packet->crc16 = 0;
   do {
-    uint16_t crc16_post = crc16_ccitt(0, (uint8_t *)packet, len);
+    uint16_t crc16_post = bm_serial_crc16_ccitt(0, (uint8_t *)packet, len);
 
     if (crc16_post != crc16_pre) {
       rval = BM_SERIAL_CRC_ERR;
