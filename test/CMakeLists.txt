@@ -6,6 +6,7 @@ target_include_directories(bm_serial_tests
     PRIVATE
     ${SRC_DIR}
     ${TEST_DIR}
+    ${BM_COMMON_MESSAGES_INCLUDES}
 )
 
 target_sources(bm_serial_tests
