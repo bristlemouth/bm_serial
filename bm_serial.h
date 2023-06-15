@@ -63,7 +63,7 @@ typedef struct {
   bool (*cfg_status_request_fn)(uint64_t node_id, bm_common_config_partition_e partition);
 
   // Function called when a cfg status response is received.
-  bool (*cfg_status_response_fn)(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, size_t key_data_length, void* keys);
+  bool (*cfg_status_response_fn)(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys);
 
   // Function called when a cfg del is received.
   bool (*cfg_key_del_request_fn)(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key);
@@ -107,7 +107,7 @@ bm_serial_error_e bm_serial_cfg_set(uint64_t node_id, bm_common_config_partition
 bm_serial_error_e bm_serial_cfg_value(uint64_t node_id, bm_common_config_partition_e partition, uint32_t data_length, void* data);
 bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id, bm_common_config_partition_e partition);
 bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_config_partition_e partition);
-bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, size_t key_data_length, void* keys);
+bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys);
 bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key);
 bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
 #ifdef __cplusplus

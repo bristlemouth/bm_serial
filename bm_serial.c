@@ -464,8 +464,8 @@ bm_serial_error_e bm_serial_cfg_value(uint64_t node_id, bm_common_config_partiti
     }    
 
     bm_common_config_value_t *cfg_value_msg = (bm_common_config_value_t *)packet->payload;
-    cfg_value_msg->header.target_node_id = node_id;
-    cfg_value_msg->header.source_node_id = 0; // UNUSED
+    cfg_value_msg->header.target_node_id = 0; // UNUSED
+    cfg_value_msg->header.source_node_id = node_id;
     cfg_value_msg->partition = partition;
     cfg_value_msg->data_length = data_length;
     memcpy(cfg_value_msg->data, data, data_length);
@@ -524,10 +524,18 @@ bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_confi
   return rval;
 }
 
-bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, size_t key_data_length, void * keys) {
+bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void * keys) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
-    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_status_response_t) + key_data_length;
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_status_response_t);
+    size_t key_data_len = 0;
+    bm_common_config_status_key_data_t* cur_key = (bm_common_config_status_key_data_t*) keys;
+    for(int i = 0; i < num_keys; i++) {
+      key_data_len += sizeof(bm_common_config_status_key_data_t);
+      key_data_len += cur_key->key_length;
+      cur_key +=  sizeof(bm_common_config_status_key_data_t) + cur_key->key_length;
+    }
+    message_len += key_data_len;
     bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
 
     if(!packet) {
@@ -535,12 +543,12 @@ bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_conf
       break;
     }    
     bm_common_config_status_response_t* status_resp_msg = (bm_common_config_status_response_t*)packet->payload;
-    status_resp_msg->header.target_node_id = node_id;
-    status_resp_msg->header.source_node_id = 0; // UNUSED.
+    status_resp_msg->header.target_node_id = 0; // UNUSED
+    status_resp_msg->header.source_node_id = node_id; // UNUSED.
     status_resp_msg->partition = partition;
     status_resp_msg->committed = commited;
     status_resp_msg->num_keys = num_keys;
-    memcpy(status_resp_msg->keyData, keys, key_data_length);
+    memcpy(status_resp_msg->keyData, keys, key_data_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -586,8 +594,8 @@ bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_conf
       break;
     }    
     bm_common_config_delete_key_response_t* del_key_resp = (bm_common_config_delete_key_response_t*) packet->payload;
-    del_key_resp->header.target_node_id = node_id;
-    del_key_resp->header.source_node_id = 0; // UNUSED.
+    del_key_resp->header.target_node_id = 0; // UNUSED
+    del_key_resp->header.source_node_id = node_id;
     del_key_resp->partition = partition;
     del_key_resp->success = success;
     del_key_resp->key_length = key_len;
@@ -737,27 +745,59 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       }
 
       case BM_SERIAL_CFG_GET: {
+        if(_callbacks.cfg_get_fn) {
+          bm_common_config_get_t* cfg_get = (bm_common_config_get_t*)packet->payload;
+          _callbacks.cfg_get_fn(cfg_get->header.target_node_id, cfg_get->partition, cfg_get->key_length, cfg_get->key);
+        }
         break;
       }
       case BM_SERIAL_CFG_SET: {
+        if(_callbacks.cfg_set_fn){
+          bm_common_config_set_t* cfg_set = (bm_common_config_set_t*) packet->payload;
+          _callbacks.cfg_set_fn(cfg_set->header.target_node_id, cfg_set->partition, cfg_set->key_length, (char *)cfg_set->keyAndData, cfg_set->data_length, &cfg_set->keyAndData[cfg_set->key_length]);
+        }
         break;
       }
       case BM_SERIAL_CFG_VALUE: {
+        if(_callbacks.cfg_value_fn) {
+          bm_common_config_value_t* cfg_value = (bm_common_config_value_t *) packet->payload;
+          _callbacks.cfg_value_fn(cfg_value->header.source_node_id, cfg_value->partition, cfg_value->data_length, cfg_value->data);
+        }
         break;
       }
       case BM_SERIAL_CFG_COMMIT: {
+        if(_callbacks.cfg_commit_fn){
+          bm_common_config_commit_t* cfg_commit = (bm_common_config_commit_t*) packet->payload;
+          _callbacks.cfg_commit_fn(cfg_commit->header.target_node_id, cfg_commit->partition);
+        }
         break;
       }
       case BM_SERIAL_CFG_STATUS_REQ: {
+        if(_callbacks.cfg_status_request_fn){
+          bm_common_config_status_request_t* cfg_status_req = (bm_common_config_status_request_t*) packet->payload;
+          _callbacks.cfg_status_request_fn(cfg_status_req->header.target_node_id, cfg_status_req->partition);
+        }
         break;
       }
       case BM_SERIAL_CFG_STATUS_RESP: {
+        if(_callbacks.cfg_status_response_fn){
+          bm_common_config_status_response_t* cfg_status_resp = (bm_common_config_status_response_t*) packet->payload;
+          _callbacks.cfg_status_response_fn(cfg_status_resp->header.source_node_id, cfg_status_resp->partition, cfg_status_resp->committed, cfg_status_resp->num_keys, cfg_status_resp->keyData);
+        }
         break;
       }
       case BM_SERIAL_CFG_DEL_REQ: {
+        if(_callbacks.cfg_key_del_request_fn) {
+          bm_common_config_delete_key_request_t* cfg_del_req = (bm_common_config_delete_key_request_t*) packet->payload;
+          _callbacks.cfg_key_del_request_fn(cfg_del_req->header.target_node_id, cfg_del_req->partition, cfg_del_req->key_length, cfg_del_req->key);
+        }
         break;
       }
       case BM_SERIAL_CFG_DEL_RESP: {
+        if(_callbacks.cfg_key_del_response_fn) {
+          bm_common_config_delete_key_response_t* cfg_del_resp = (bm_common_config_delete_key_response_t *) packet->payload;
+          _callbacks.cfg_key_del_response_fn(cfg_del_resp->header.source_node_id, cfg_del_resp->partition, cfg_del_resp->key_length, cfg_del_resp->key, cfg_del_resp->success);
+        }
         break;
       }
       default: {
