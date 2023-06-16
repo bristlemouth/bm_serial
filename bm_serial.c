@@ -428,7 +428,7 @@ bm_serial_error_e bm_serial_cfg_set(uint64_t node_id, bm_common_config_partition
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_set_t) + key_len + value_size;
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_SET, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -456,7 +456,7 @@ bm_serial_error_e bm_serial_cfg_value(uint64_t node_id, bm_common_config_partiti
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_value_t) + data_length;
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_VALUE, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -482,7 +482,7 @@ bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id, bm_common_config_partit
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_commit_t);
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_COMMIT, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -505,7 +505,7 @@ bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_confi
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_status_request_t);
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_STATUS_REQ, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -536,7 +536,7 @@ bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_conf
       cur_key +=  sizeof(bm_common_config_status_key_data_t) + cur_key->key_length;
     }
     message_len += key_data_len;
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_STATUS_RESP, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -562,7 +562,7 @@ bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, bm_common_confi
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_delete_key_request_t) + key_len;
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_DEL_REQ, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -587,7 +587,7 @@ bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_conf
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_config_delete_key_response_t) + key_len;
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_GET, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_CFG_DEL_RESP, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;

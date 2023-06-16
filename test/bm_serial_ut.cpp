@@ -158,7 +158,7 @@ bool dfu_chunk_fun(uint32_t offset, size_t length, uint8_t * data) {
   return true;
 }
 
-static bool fake_dfu_finish_called;;
+static bool fake_dfu_finish_called;
 bool dfu_finish_fn(uint64_t node_id, bool success, uint32_t err) {
   (void)node_id;
   (void) success;
@@ -205,4 +205,146 @@ TEST_F(NCPTest, DFUTest) {
   EXPECT_EQ(bm_serial_dfu_send_finish(0xdeadbaaddaadbead, 1, 0), BM_SERIAL_OK);
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_dfu_finish_called);
+}
+
+static bool fake_cfg_get_fn_called;
+static bool fake_cfg_get_fn(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char* key) {
+  (void) node_id;
+  (void) partition;
+  (void) key_len;
+  (void) key;
+  fake_cfg_get_fn_called = true;
+  return true;
+}
+static bool fake_cfg_set_fn_called;
+static bool fake_cfg_set_fn(uint64_t node_id, bm_common_config_partition_e partition,
+  size_t key_len, const char* key, size_t value_size, void * val) {
+  (void) node_id;
+  (void) partition;
+  (void) key_len;
+  (void) key;
+  (void) value_size;
+  (void) val;
+  fake_cfg_set_fn_called = true;
+  return true;
+
+}
+static bool fake_cfg_value_fn_called;
+static bool fake_cfg_value_fn(uint64_t node_id, bm_common_config_partition_e partition, uint32_t data_length, void* data) {
+  (void) node_id;
+  (void) partition;
+  (void) data_length;
+  (void) data;
+  fake_cfg_value_fn_called = true;
+  return true;
+
+}
+static bool fake_cfg_commit_fn_called;
+static bool fake_cfg_commit_fn(uint64_t node_id, bm_common_config_partition_e partition) {
+  (void) node_id;
+  (void) partition;
+  fake_cfg_commit_fn_called = true;
+  return true;
+
+}
+static bool fake_cfg_status_request_fn_called;
+static bool fake_cfg_status_request_fn(uint64_t node_id, bm_common_config_partition_e partition) {
+  (void) node_id;
+  (void) partition;
+  fake_cfg_status_request_fn_called = true;
+  return true;
+
+}
+static bool fake_cfg_status_response_fn_called;
+static bool fake_cfg_status_response_fn(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys) {
+  (void) node_id;
+  (void) partition;
+  (void) commited;
+  (void) num_keys;
+  (void) keys;
+  fake_cfg_status_response_fn_called = true;
+  return true;
+}
+static bool fake_cfg_key_del_request_fn_called;
+static bool fake_cfg_key_del_request_fn(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key) {
+  (void) node_id;
+  (void) partition;
+  (void) key_len;
+  (void) key;
+  fake_cfg_key_del_request_fn_called = true;
+  return true;
+}
+static bool fake_cfg_key_del_response_fn_called;
+static bool fake_cfg_key_del_response_fn(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success) {
+  (void) node_id;
+  (void) partition;
+  (void) key_len;
+  (void) key;
+  (void) success;
+  fake_cfg_key_del_response_fn_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, ConfigTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.cfg_get_fn = fake_cfg_get_fn;
+  _callbacks.cfg_set_fn = fake_cfg_set_fn;
+  _callbacks.cfg_value_fn = fake_cfg_value_fn;
+  _callbacks.cfg_commit_fn = fake_cfg_commit_fn;
+  _callbacks.cfg_status_request_fn = fake_cfg_status_request_fn;
+  _callbacks.cfg_status_response_fn = fake_cfg_status_response_fn;
+  _callbacks.cfg_key_del_request_fn = fake_cfg_key_del_request_fn;
+  _callbacks.cfg_key_del_response_fn = fake_cfg_key_del_response_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  fake_cfg_get_fn_called  = false;
+  fake_cfg_set_fn_called = false;
+  fake_cfg_value_fn_called = false;
+  fake_cfg_commit_fn_called = false;
+  fake_cfg_status_response_fn_called = false;
+  fake_cfg_status_request_fn_called = false;
+  fake_cfg_key_del_request_fn_called = false;
+  fake_cfg_key_del_response_fn_called = false;
+
+  EXPECT_EQ(bm_serial_cfg_get(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, sizeof("foo"), "foo"),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_get_fn_called);
+
+  uint32_t test = 42;
+  EXPECT_EQ(bm_serial_cfg_set(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, sizeof("foo"), "foo", sizeof(uint32_t), &test),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_set_fn_called);
+
+  EXPECT_EQ(bm_serial_cfg_commit(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_commit_fn_called);
+
+  uint32_t result = 10;
+  EXPECT_EQ(bm_serial_cfg_value(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, sizeof(result), &result),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_value_fn_called);
+
+  EXPECT_EQ(bm_serial_cfg_status_request(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_status_request_fn_called);
+
+  const char hello[] = "hello_world";
+  uint32_t len = sizeof(bm_common_config_status_key_data_t) + sizeof(hello);
+  uint8_t * keybuffer = (uint8_t*) malloc(len);
+  bm_common_config_status_key_data_t *key = (bm_common_config_status_key_data_t *)keybuffer;
+  key->key_length = sizeof(hello);
+  memcpy(key->key, hello, sizeof(hello));
+
+  EXPECT_EQ(bm_serial_cfg_status_response(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, true, 1, keybuffer),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_status_response_fn_called);
+  free(keybuffer);
+
+  EXPECT_EQ(bm_serial_cfg_delete_request(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, sizeof("foo"), "foo"),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_key_del_request_fn_called);
+
+  EXPECT_EQ(bm_serial_cfg_delete_response(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, sizeof("foo"), "foo", true),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_cfg_key_del_response_fn_called);
+
 }
