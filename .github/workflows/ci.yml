@@ -33,6 +33,7 @@ jobs:
       - name: Checkout submodules
         run: |
           git submodule update --init third_party/googletest
+          git submodule update --init bm_common_messages
 
       - name: Run tests
         run: |
