@@ -24,6 +24,9 @@ message(STATUS "Native compiling - Building Tests")
 set(SRC_DIR ${CMAKE_SOURCE_DIR})
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 
+# Include BM Common Messages
+add_subdirectory(${SRC_DIR}/bm_common_messages bm_common_messages)
+
 # Setup testing
 include(CTest)
 add_subdirectory("third_party/googletest")

@@ -3,6 +3,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "bm_serial_messages.h"
+#include "bm_common_structs.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +45,31 @@ typedef struct {
 
   // Function called when a dfu end is received.
   bool (*dfu_end_fn)(uint64_t node_id, bool success, uint32_t err);
+
+  // Function called when a cfg get is received.
+  bool (*cfg_get_fn)(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char* key);
+
+  // Function called when a cfg set is received.
+  bool (*cfg_set_fn)(uint64_t node_id, bm_common_config_partition_e partition,
+    size_t key_len, const char* key, size_t value_size, void * val);
+
+  // Function called when a cfg value is recieved.
+  bool (*cfg_value_fn)(uint64_t node_id, bm_common_config_partition_e partition, uint32_t data_length, void* data);
+
+  // Function called when a cfg commit is received.
+  bool (*cfg_commit_fn)(uint64_t node_id, bm_common_config_partition_e partition);
+
+  // Function called when a cfg status request is received.
+  bool (*cfg_status_request_fn)(uint64_t node_id, bm_common_config_partition_e partition);
+
+  // Function called when a cfg status response is received.
+  bool (*cfg_status_response_fn)(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys);
+
+  // Function called when a cfg del is received.
+  bool (*cfg_key_del_request_fn)(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key);
+
+  // Function called when a cfg del is received.
+  bool (*cfg_key_del_response_fn)(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -75,6 +101,15 @@ bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start);
 bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8_t * data);
 bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint32_t status);
 
+bm_serial_error_e bm_serial_cfg_get(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char* key);
+bm_serial_error_e bm_serial_cfg_set(uint64_t node_id, bm_common_config_partition_e partition,
+    size_t key_len, const char* key, size_t value_size, void * val);
+bm_serial_error_e bm_serial_cfg_value(uint64_t node_id, bm_common_config_partition_e partition, uint32_t data_length, void* data);
+bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id, bm_common_config_partition_e partition);
+bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_config_partition_e partition);
+bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys);
+bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key);
+bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
 #ifdef __cplusplus
 }
 #endif
