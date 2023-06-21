@@ -339,6 +339,9 @@ TEST_F(NCPTest, ConfigTest) {
   EXPECT_TRUE(fake_cfg_status_response_fn_called);
   free(keybuffer);
 
+  EXPECT_EQ(bm_serial_cfg_status_response(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, true, 0, NULL),BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+
   EXPECT_EQ(bm_serial_cfg_delete_request(0xdeadbadc0ffeedad, BM_COMMON_CFG_PARTITION_SYSTEM, sizeof("foo"), "foo"),BM_SERIAL_OK);
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_cfg_key_del_request_fn_called);
