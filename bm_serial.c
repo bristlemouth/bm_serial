@@ -804,6 +804,12 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         }
         break;
       }
+      case BM_SERIAL_NETWORK_INFO: {
+        if(_callbacks.network_info_fn) {
+          bm_common_network_info_t* network_info = (bm_common_network_info_t*) packet->payload;
+          _callbacks.network_info_fn(network_info);
+        }
+      }
       default: {
         rval = BM_SERIAL_UNSUPPORTED_MSG;
         break;

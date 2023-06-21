@@ -70,6 +70,9 @@ typedef struct {
 
   // Function called when a cfg del is received.
   bool (*cfg_key_del_response_fn)(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
+
+  // Function called when a network info is received
+  bool (*network_info_fn)(bm_common_network_info_t* network_info);
 } bm_serial_callbacks_t;
 
 typedef enum {
