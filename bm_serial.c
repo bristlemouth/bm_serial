@@ -303,7 +303,7 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_
       break;
     }
 
-    uint16_t message_len = sizeof(bm_common_network_info_t) + (sizeof(uint64_t) * num_nodes);
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_common_network_info_t) + (sizeof(uint64_t) * num_nodes);
 
     bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NETWORK_INFO, 0, message_len);
 
