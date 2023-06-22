@@ -137,7 +137,7 @@ bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *payload,
   \param data_len length of data
   \return BM_SERIAL_OK if ok, nonzero otherwise
 */
-bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t topic_len, const uint8_t *data, uint16_t data_len) {
+bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t topic_len, const uint8_t *data, uint16_t data_len, uint8_t type, uint8_t version) {
   bm_serial_error_e rval = BM_SERIAL_OK;
 
   do {
@@ -156,6 +156,8 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
     bm_serial_pub_header_t *pub_header = (bm_serial_pub_header_t *)packet->payload;
     pub_header->node_id = node_id;
     pub_header->topic_len = topic_len;
+    pub_header->type = type;
+    pub_header->version = version;
     memcpy(pub_header->topic, topic, topic_len);
 
     // Copy data after payload (if any)
@@ -652,7 +654,9 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
                           pub_header->topic_len,
                           pub_header->node_id,
                           &pub_header->topic[pub_header->topic_len],
-                          data_len);
+                          data_len,
+                          pub_header->type,
+                          pub_header->version);
 
         break;
       }

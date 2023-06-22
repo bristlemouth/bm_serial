@@ -38,6 +38,8 @@ typedef struct {
 
 typedef struct {
   uint64_t node_id;
+  uint8_t type;
+  uint8_t version;
   uint16_t topic_len;
   uint8_t topic[0];
   // message goes after topic

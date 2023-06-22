@@ -14,7 +14,7 @@ typedef struct {
   bool (*tx_fn)(const uint8_t *buff, size_t len);
 
   // Function called when published data is received
-  bool (*pub_fn)(const char *topic, uint16_t topic_len, uint64_t node_id, const uint8_t *payload, size_t len);
+  bool (*pub_fn)(const char *topic, uint16_t topic_len, uint64_t node_id, const uint8_t *payload, size_t len, uint8_t type, uint8_t version);
 
   // Function called when a subscribe request is received
   bool (*sub_fn)(const char *topic, uint16_t topic_len);
@@ -91,7 +91,7 @@ void bm_serial_set_callbacks(bm_serial_callbacks_t *callbacks);
 bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len);
 bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *buff, size_t len);
 
-bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t topic_len, const uint8_t *data, uint16_t data_len);
+bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t topic_len, const uint8_t *data, uint16_t data_len, uint8_t type, uint8_t version);
 bm_serial_error_e bm_serial_sub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_unsub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time);
