@@ -307,7 +307,7 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_
     }
 
     bm_common_network_info_t *network_info = (bm_common_network_info_t *)packet->payload;
-    network_info->newtwork_crc32 = network_crc32;
+    network_info->network_crc32 = network_crc32;
     memcpy(&network_info->config_crc, config_crc, sizeof(bm_common_config_crc_t));
     memcpy(&network_info->fw_info, fw_info, sizeof(bm_common_fw_version_t));
     network_info->node_list.num_nodes = num_nodes;
