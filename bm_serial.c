@@ -286,6 +286,45 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
 }
 
 /*!
+  Send out a bm_common_network_info_t
+
+  \param[in] *config_crc
+  \param[in] *fw_info
+  \param[in] num_nodes
+  \param[in] *node_id_list
+  \return BM_SERIAL_OK if sent, nonzero otherwise
+*/
+
+bm_serial_error_e bm_serial_send_network_info(bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_common_network_info_t) + (sizeof(uint64_t) * num_nodes);
+
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NETWORK_INFO, 0, message_len);
+
+    if (!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_common_network_info_t *network_info = (bm_common_network_info_t *)packet->payload;
+    memcpy(&network_info->config_crc, config_crc, sizeof(bm_common_config_crc_t));
+    memcpy(&network_info->fw_info, fw_info, sizeof(bm_common_fw_version_t));
+    network_info->node_list.num_nodes = num_nodes;
+    memcpy(&network_info->node_list.list, node_id_list, sizeof(uint64_t)*num_nodes);
+
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+
+  } while (0);
+  return rval;
+}
+
+/*!
   Send out a self test request or response
 
   \param[in] node_id node id of device who ran self test (or 0 to request one)

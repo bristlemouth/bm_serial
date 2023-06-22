@@ -113,6 +113,8 @@ bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_confi
 bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys);
 bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key);
 bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
+
+bm_serial_error_e bm_serial_send_network_info(bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list);
 #ifdef __cplusplus
 }
 #endif

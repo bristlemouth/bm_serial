@@ -380,15 +380,7 @@ TEST_F(NCPTest, NetworkInfoTest) {
   uint64_t node_list[] = {12345678};
   uint16_t num_nodes = 1;
 
-  uint16_t total_len = sizeof(bm_common_network_info_t) + num_nodes*sizeof(uint64_t);
-  bm_common_network_info_t *_network_info = (bm_common_network_info_t*)malloc(total_len);
-  _network_info->newtwork_crc32 = 1234;
-  _network_info->config_crc = config_crc;
-  _network_info->fw_info = fw_info;
-  _network_info->node_list.num_nodes = num_nodes;
-  memcpy((void *)_network_info->node_list.list, (void*)node_list, _network_info->node_list.num_nodes*sizeof(uint64_t));
-
-  EXPECT_EQ(bm_serial_tx(BM_SERIAL_NETWORK_INFO, (uint8_t*)_network_info, total_len), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_send_network_info(&config_crc, &fw_info, num_nodes, node_list), BM_SERIAL_OK);
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_network_info_fn_called);
 }
