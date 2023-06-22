@@ -294,7 +294,7 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
   \param[in] *node_id_list
   \return BM_SERIAL_OK if sent, nonzero otherwise
 */
-bm_serial_error_e bm_serial_send_network_info(bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list) {
+bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_common_network_info_t) + (sizeof(uint64_t) * num_nodes);
@@ -307,6 +307,7 @@ bm_serial_error_e bm_serial_send_network_info(bm_common_config_crc_t *config_crc
     }
 
     bm_common_network_info_t *network_info = (bm_common_network_info_t *)packet->payload;
+    network_info->newtwork_crc32 = network_crc32;
     memcpy(&network_info->config_crc, config_crc, sizeof(bm_common_config_crc_t));
     memcpy(&network_info->fw_info, fw_info, sizeof(bm_common_fw_version_t));
     network_info->node_list.num_nodes = num_nodes;

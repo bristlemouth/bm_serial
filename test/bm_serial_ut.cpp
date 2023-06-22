@@ -380,7 +380,7 @@ TEST_F(NCPTest, NetworkInfoTest) {
   uint64_t node_list[] = {12345678};
   uint16_t num_nodes = 1;
 
-  EXPECT_EQ(bm_serial_send_network_info(&config_crc, &fw_info, num_nodes, node_list), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_send_network_info((uint32_t)1234, &config_crc, &fw_info, num_nodes, node_list), BM_SERIAL_OK);
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_network_info_fn_called);
 }
