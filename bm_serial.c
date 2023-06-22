@@ -286,6 +286,51 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
 }
 
 /*!
+  Send out a bm_common_network_info_t
+
+  \param[in] *config_crc
+  \param[in] *fw_info
+  \param[in] num_nodes
+  \param[in] *node_id_list
+  \return BM_SERIAL_OK if sent, nonzero otherwise
+*/
+bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+
+    if (!config_crc || !fw_info || !node_id_list || num_nodes == 0) {
+      rval = BM_SERIAL_MISC_ERR;
+      break;
+    }
+
+    uint16_t message_len = sizeof(bm_common_network_info_t) + (sizeof(uint64_t) * num_nodes);
+
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NETWORK_INFO, 0, message_len);
+
+    if (!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_common_network_info_t *network_info = (bm_common_network_info_t *)packet->payload;
+    network_info->network_crc32 = network_crc32;
+    memcpy(&network_info->config_crc, config_crc, sizeof(bm_common_config_crc_t));
+    memcpy(&network_info->fw_info, fw_info, sizeof(bm_common_fw_version_t));
+    network_info->node_list.num_nodes = num_nodes;
+    memcpy(&network_info->node_list.list, node_id_list, sizeof(uint64_t)*num_nodes);
+
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+
+  } while (0);
+  return rval;
+}
+
+/*!
   Send out a self test request or response
 
   \param[in] node_id node id of device who ran self test (or 0 to request one)
@@ -801,6 +846,13 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         if(_callbacks.cfg_key_del_response_fn) {
           bm_common_config_delete_key_response_t* cfg_del_resp = (bm_common_config_delete_key_response_t *) packet->payload;
           _callbacks.cfg_key_del_response_fn(cfg_del_resp->header.source_node_id, cfg_del_resp->partition, cfg_del_resp->key_length, cfg_del_resp->key, cfg_del_resp->success);
+        }
+        break;
+      }
+      case BM_SERIAL_NETWORK_INFO: {
+        if(_callbacks.network_info_fn) {
+          bm_common_network_info_t* network_info = (bm_common_network_info_t*) packet->payload;
+          _callbacks.network_info_fn(network_info);
         }
         break;
       }

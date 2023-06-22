@@ -351,3 +351,36 @@ TEST_F(NCPTest, ConfigTest) {
   EXPECT_TRUE(fake_cfg_key_del_response_fn_called);
 
 }
+
+static bool fake_network_info_fn_called;
+static bool fake_network_info_fn(bm_common_network_info_t* network_info) {
+  (void) network_info;
+  fake_network_info_fn_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, NetworkInfoTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.network_info_fn = fake_network_info_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  fake_network_info_fn_called = false;
+
+  bm_common_config_crc_t config_crc = {
+    .partition = BM_COMMON_CFG_PARTITION_SYSTEM,
+    .crc32 = 1234,
+  };
+
+  bm_common_fw_version_t fw_info = {
+    .major = 1,
+    .minor = 2,
+    .revision = 3,
+    .gitSHA = 1234,
+  };
+
+  uint64_t node_list[] = {12345678};
+  uint16_t num_nodes = 1;
+
+  EXPECT_EQ(bm_serial_send_network_info((uint32_t)1234, &config_crc, &fw_info, num_nodes, node_list), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(fake_network_info_fn_called);
+}
