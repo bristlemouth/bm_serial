@@ -297,6 +297,12 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
 bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
+
+    if (!config_crc || !fw_info || !node_id_list || num_nodes == 0) {
+      rval = BM_SERIAL_MISC_ERR
+      break;
+    }
+
     uint16_t message_len = sizeof(bm_common_network_info_t) + (sizeof(uint64_t) * num_nodes);
 
     bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NETWORK_INFO, 0, message_len);
