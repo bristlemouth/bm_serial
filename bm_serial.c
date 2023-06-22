@@ -299,7 +299,7 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_
   do {
 
     if (!config_crc || !fw_info || !node_id_list || num_nodes == 0) {
-      rval = BM_SERIAL_MISC_ERR
+      rval = BM_SERIAL_MISC_ERR;
       break;
     }
 
