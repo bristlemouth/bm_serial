@@ -15,6 +15,7 @@ typedef enum {
   BM_SERIAL_RTC_SET = 0x07,
   BM_SERIAL_SELF_TEST = 0x08,
   BM_SERIAL_NETWORK_INFO = 0x09,
+  BM_SERIAL_REBOOT_INFO = 0x0A,
 
   BM_SERIAL_DFU_START = 0x30,
   BM_SERIAL_DFU_CHUNK = 0x31,
@@ -115,10 +116,21 @@ typedef struct {
 } __attribute__ ((packed)) bm_serial_dfu_chunk_t;
 
 typedef struct {
-  // Node id of unit reporting test (leave blank for test request)
+  // Node id of dfu unit
   uint64_t node_id;
   // success of dfu
   bool success;
   // Errors for dfu result
   uint32_t dfu_status;
 } __attribute__ ((packed)) bm_serial_dfu_finish_t;
+
+typedef struct {
+  // Node id 
+  uint64_t node_id;
+  // Reboot Reason
+  uint32_t reboot_reason;
+  // git hash 
+  uint32_t gitSHA;
+  // reboot count 
+  uint32_t reboot_count;
+} __attribute__ ((packed)) bm_serial_reboot_info_t;

@@ -367,6 +367,41 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
   return rval;
 }
 
+/*!
+  Send out a reboot info message
+
+  \param[in] node_id node id of device who ran self test (or 0 to request one)
+  \param[in] reboot_reason reboot reason enum
+  \param[in] gitSHA 32-bit gitSHA
+  \param[in] reboot_count reboot count  
+  \return BM_SERIAL_OK on successful send, nonzero otherwise
+*/
+bm_serial_error_e bm_serial_send_reboot_info(uint64_t node_id, uint32_t reboot_reason, uint32_t gitSHA, uint32_t reboot_count) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_reboot_info_t);
+
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_REBOOT_INFO, 0, message_len);
+
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+    bm_serial_reboot_info_t *reboot_info = (bm_serial_reboot_info_t*)packet->payload;
+    reboot_info->node_id = node_id;
+    reboot_info->reboot_reason = reboot_reason;
+    reboot_info->gitSHA = gitSHA;
+    reboot_info->reboot_count = reboot_count;
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+  } while(0);
+  return rval;
+}
+
+
 bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -765,6 +800,14 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         if(_callbacks.self_test_fn) {
           bm_serial_self_test_t *self_test = (bm_serial_self_test_t *)packet->payload;
           _callbacks.self_test_fn(self_test->node_id, self_test->result);
+        }
+        break;
+      }
+
+      case BM_SERIAL_REBOOT_INFO: {
+        if(_callbacks.reboot_info_fn){
+          bm_serial_reboot_info_t *reboot_info = (bm_serial_reboot_info_t *)packet->payload;
+          _callbacks.reboot_info_fn(reboot_info->node_id, reboot_info->reboot_reason, reboot_info->gitSHA, reboot_info->reboot_count);
         }
         break;
       }
