@@ -384,3 +384,24 @@ TEST_F(NCPTest, NetworkInfoTest) {
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_network_info_fn_called);
 }
+
+static bool reboot_info_fn_called;
+static bool fake_reboot_info_fn(uint64_t node_id, uint32_t reboot_reason, uint32_t gitSHA, uint32_t reboot_count) {
+  (void) node_id;
+  (void) reboot_reason;
+  (void) gitSHA;
+  (void) reboot_count;
+  reboot_info_fn_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, RebootInfoTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.reboot_info_fn = fake_reboot_info_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  reboot_info_fn_called = false;
+
+  EXPECT_EQ(bm_serial_send_reboot_info(0xdadb0dc0ffee, 3, 0xbaddd00d, 1), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
+  EXPECT_TRUE(reboot_info_fn_called);
+}
