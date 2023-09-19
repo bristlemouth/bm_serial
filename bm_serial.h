@@ -89,8 +89,7 @@ typedef enum {
   BM_SERIAL_UNSUPPORTED_MSG = -7,
   BM_SERIAL_INVALID_TOPIC_LEN = -8,
   BM_SERIAL_INVALID_MSG_LEN = -9,
-
-  BM_SERIAL_MISC_ERR,
+  BM_SERIAL_MISC_ERR = -10,
 } bm_serial_error_e;
 
 void bm_serial_set_callbacks(bm_serial_callbacks_t *callbacks);
