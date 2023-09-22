@@ -29,6 +29,12 @@ typedef enum {
   BM_SERIAL_CFG_STATUS_RESP = 0x45,
   BM_SERIAL_CFG_DEL_REQ = 0x46,
   BM_SERIAL_CFG_DEL_RESP = 0x47,
+
+  BM_SERIAL_DEVICE_INFO_REQ = 0x50,
+  BM_SERIAL_DEVICE_INFO_REPLY = 0x51,
+  BM_SERIAL_RESOURCE_REQ = 0x52,
+  BM_SERIAL_RESOURCE_REPLY = 0x53,
+
 } bm_serial_message_t;
 
 typedef struct {
@@ -100,8 +106,8 @@ typedef struct {
   // minor version
   uint8_t minor_ver;
   // filter for update
-  uint32_t filter_key; 
-  // git hash 
+  uint32_t filter_key;
+  // git hash
   uint32_t gitSHA;
 } __attribute__ ((packed)) bm_serial_dfu_start_t;
 
@@ -125,12 +131,86 @@ typedef struct {
 } __attribute__ ((packed)) bm_serial_dfu_finish_t;
 
 typedef struct {
-  // Node id 
+  // Node id
   uint64_t node_id;
   // Reboot Reason
   uint32_t reboot_reason;
-  // git hash 
+  // git hash
   uint32_t gitSHA;
-  // reboot count 
+  // reboot count
   uint32_t reboot_count;
 } __attribute__ ((packed)) bm_serial_reboot_info_t;
+
+typedef struct {
+  // Node ID of the target node for which the request is being made. (Zeroed = all nodes)
+  uint64_t target_node_id;
+} __attribute__((packed)) bm_serial_device_info_request_t;
+
+typedef struct {
+  // Node ID of the responding node
+  uint64_t node_id;
+
+  // Vendor ID of the hardware module implementing the BM Node functions
+  uint16_t vendor_id;
+
+  // Product ID for the hardware module implementing the BM Node functions
+  uint16_t product_id;
+
+  // Factory-flashed unique serial number
+  uint8_t serial_num[16];
+
+  // Last 4 bytes of git SHA
+  uint32_t git_sha;
+
+  // Major Version
+  uint8_t ver_major;
+
+  // Minor Version
+  uint8_t ver_minor;
+
+  // Revision/Patch Version
+  uint8_t ver_rev;
+
+  // Version of the product hardware (0 for don't care)
+  uint8_t ver_hw;
+} __attribute__((packed)) bm_serial_device_info_t;
+
+typedef struct {
+  bm_serial_device_info_t info;
+
+  // Length of the full version string
+  uint8_t ver_str_len;
+
+  // Length of device name
+  uint8_t dev_name_len;
+
+  // ver_str is immediately followed by dev_name_len
+  char strings[0];
+} __attribute__((packed)) bm_serial_device_info_reply_t;
+
+typedef struct {
+  // Node ID of the target node for which the request is being made. (Zeroed = all nodes)
+  uint64_t target_node_id;
+} __attribute__((packed)) bm_serial_resource_table_request_t;
+
+typedef struct {
+  // Length of resource name
+  uint16_t resource_len;
+  // Name of resource
+  char resource[0];
+} __attribute__((packed)) bm_serial_resource_t;
+
+typedef struct {
+  // Node ID of the responding node
+  uint64_t node_id;
+
+  // Number of published topics
+  uint16_t num_pubs;
+
+  // Number of subscribed topics
+  uint16_t num_subs;
+
+  // List of structures containing information for all resource interests known about in this node.
+  // List of bcmp_resource_t structured as num_pub published resources, then num_sub, subscribed resources.
+  uint8_t resource_list[0];
+} __attribute__((packed)) bm_serial_resource_table_reply_t;

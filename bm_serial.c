@@ -373,7 +373,7 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
   \param[in] node_id node id of device who ran self test (or 0 to request one)
   \param[in] reboot_reason reboot reason enum
   \param[in] gitSHA 32-bit gitSHA
-  \param[in] reboot_count reboot count  
+  \param[in] reboot_count reboot count
   \return BM_SERIAL_OK on successful send, nonzero otherwise
 */
 bm_serial_error_e bm_serial_send_reboot_info(uint64_t node_id, uint32_t reboot_reason, uint32_t gitSHA, uint32_t reboot_count) {
@@ -515,7 +515,7 @@ bm_serial_error_e bm_serial_cfg_set(uint64_t node_id, bm_common_config_partition
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
 
     bm_common_config_set_t *cfg_set_msg = (bm_common_config_set_t *)packet->payload;
     cfg_set_msg->header.target_node_id = node_id;
@@ -543,7 +543,7 @@ bm_serial_error_e bm_serial_cfg_value(uint64_t node_id, bm_common_config_partiti
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
 
     bm_common_config_value_t *cfg_value_msg = (bm_common_config_value_t *)packet->payload;
     cfg_value_msg->header.target_node_id = 0; // UNUSED
@@ -569,7 +569,7 @@ bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id, bm_common_config_partit
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
     bm_common_config_commit_t *cfg_commit_msg = (bm_common_config_commit_t *)packet->payload;
     cfg_commit_msg->header.target_node_id = node_id;
     cfg_commit_msg->header.source_node_id = 0; // UNUSED.
@@ -592,7 +592,7 @@ bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_confi
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
     bm_common_config_status_request_t* status_req_msg =  (bm_common_config_status_request_t *)packet->payload;
     status_req_msg->header.target_node_id = node_id;
     status_req_msg->header.source_node_id = 0; // UNUSED.
@@ -623,7 +623,7 @@ bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_conf
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
     bm_common_config_status_response_t* status_resp_msg = (bm_common_config_status_response_t*)packet->payload;
     status_resp_msg->header.target_node_id = 0; // UNUSED
     status_resp_msg->header.source_node_id = node_id; // UNUSED.
@@ -649,7 +649,7 @@ bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, bm_common_confi
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
     bm_common_config_delete_key_request_t* del_key_req = (bm_common_config_delete_key_request_t*) packet->payload;
     del_key_req->header.target_node_id = node_id;
     del_key_req->header.source_node_id = 0; // UNUSED.
@@ -674,7 +674,7 @@ bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_conf
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
-    }    
+    }
     bm_common_config_delete_key_response_t* del_key_resp = (bm_common_config_delete_key_response_t*) packet->payload;
     del_key_resp->header.target_node_id = 0; // UNUSED
     del_key_resp->header.source_node_id = node_id;
@@ -689,6 +689,55 @@ bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_conf
     }
   } while(0);
   return rval;
+}
+
+bm_serial_error_e bm_serial_send_info_request(uint64_t node_id) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_device_info_request_t);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
+
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+    bm_serial_device_info_request_t *device_info_req_msg = (bm_serial_device_info_request_t *)packet->payload;
+    device_info_req_msg->target_node_id = node_id;
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+  } while(0);
+  return rval;
+}
+
+bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id, bm_serial_device_info_reply_t* bcmp_info) {
+
+}
+
+bm_serial_error_e bm_serial_send_resource_request(uint64_t node_id){
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_request_t);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
+
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+    bm_serial_resource_table_request_t *resource_req_msg = (bm_serial_resource_table_request_t *)packet->payload;
+    resource_req_msg->target_node_id = node_id;
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+  } while(0);
+}
+
+bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_resource_table_reply_t* bcmp_resource) {
+
 }
 
 // Process bm_serial packet (not COBS anymore!)

@@ -76,6 +76,12 @@ typedef struct {
 
   // Function called when a network info is received
   bool (*network_info_fn)(bm_common_network_info_t* network_info);
+
+  // Function called when a BCMP info request is received
+  bool (*bcmp_info_request_fn)(uint64_t node_id);
+
+  //Function called when a BCMP info response is received
+  bool (*bcmp_info_response_fn)(uint64_t node_id, bm_serial_device_info_reply_t* bcmp_info);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -116,6 +122,12 @@ bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, bm_common_confi
 bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, bm_common_config_partition_e partition, bool commited, uint8_t num_keys, void* keys);
 bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key);
 bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
+
+bm_serial_error_e bm_serial_send_info_request(uint64_t node_id);
+bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id, bm_serial_device_info_reply_t* bcmp_info);
+
+bm_serial_error_e bm_serial_send_resource_request(uint64_t node_id);
+bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_resource_table_reply_t* bcmp_resource);
 
 bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, bm_common_config_crc_t *config_crc, bm_common_fw_version_t *fw_info, uint16_t num_nodes, uint64_t* node_id_list);
 #ifdef __cplusplus
