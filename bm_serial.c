@@ -713,17 +713,18 @@ bm_serial_error_e bm_serial_send_info_request(uint64_t node_id) {
 }
 
 bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id, bm_serial_device_info_reply_t* bcmp_info) {
+  ( void ) node_id;
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
-    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_device_info_request_t);
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_device_info_reply_t);
     bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
       break;
     }
-    bm_serial_device_info_request_t *device_info_req_msg = (bm_serial_device_info_request_t *)packet->payload;
-    device_info_req_msg->target_node_id = node_id;
+    bm_serial_device_info_reply_t *device_info_reply_msg = (bm_serial_device_info_reply_t *)packet->payload;
+    memcpy(device_info_reply_msg, bcmp_info, sizeof(bm_serial_device_info_reply_t));
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -751,10 +752,29 @@ bm_serial_error_e bm_serial_send_resource_request(uint64_t node_id){
       break;
     }
   } while(0);
+  return rval;
 }
 
 bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_resource_table_reply_t* bcmp_resource) {
+  ( void ) node_id;
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_request_t);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
 
+    if(!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+    bm_serial_resource_table_reply_t *resource_req_msg = (bm_serial_resource_table_reply_t *)packet->payload;
+    memcpy(resource_req_msg, bcmp_resource, sizeof(bm_serial_resource_table_reply_t));
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+    if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+  } while(0);
+  return rval;
 }
 
 // Process bm_serial packet (not COBS anymore!)
