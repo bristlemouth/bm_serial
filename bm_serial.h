@@ -74,14 +74,20 @@ typedef struct {
   // Function called when a cfg del is received.
   bool (*cfg_key_del_response_fn)(uint64_t node_id, bm_common_config_partition_e partition, size_t key_len, const char * key, bool success);
 
-  // Function called when a network info is received
+  // Function called when a network info is received.
   bool (*network_info_fn)(bm_common_network_info_t* network_info);
 
-  // Function called when a BCMP info request is received
+  // Function called when a BCMP info request is received.
   bool (*bcmp_info_request_fn)(uint64_t node_id);
 
-  //Function called when a BCMP info response is received
+  // Function called when a BCMP info response is received.
   bool (*bcmp_info_response_fn)(uint64_t node_id, bm_serial_device_info_reply_t* bcmp_info);
+
+  // Function called when a BCMP resource request is received.
+  bool (*bcmp_resource_request_fn)(uint64_t node_id);
+
+  // Function called when a BCMP resource response is received.
+  bool (*bcmp_resource_response_fn)(uint64_t node_id, bm_serial_resource_table_reply_t* bcmp_resource);
 } bm_serial_callbacks_t;
 
 typedef enum {
