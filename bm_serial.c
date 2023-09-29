@@ -985,6 +985,34 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         }
         break;
       }
+      case BM_SERIAL_DEVICE_INFO_REQ: {
+        if(_callbacks.bcmp_info_request_fn) {
+          bm_serial_device_info_request_t *info_req = (bm_serial_device_info_request_t*) packet->payload;
+          _callbacks.bcmp_info_request_fn(info_req->target_node_id);
+        }
+        break;
+      }
+      case BM_SERIAL_DEVICE_INFO_REPLY: {
+        if(_callbacks.bcmp_info_response_fn) {
+          bm_serial_device_info_reply_t* info_reply = (bm_serial_device_info_reply_t*) packet->payload;
+          _callbacks.bcmp_info_response_fn(info_reply->info.node_id, info_reply);
+        }
+        break;
+      }
+      case BM_SERIAL_RESOURCE_REQ: {
+        if(_callbacks.bcmp_resource_request_fn) {
+          bm_serial_resource_table_request_t *resource_req = (bm_serial_resource_table_request_t*) packet->payload;
+          _callbacks.bcmp_resource_request_fn(resource_req->target_node_id);
+        }
+        break;
+      }
+      case BM_SERIAL_RESOURCE_REPLY: {
+        if(_callbacks.bcmp_resource_response_fn) {
+          bm_serial_resource_table_reply_t* resource_reply = (bm_common_network_info_t*) packet->payload;
+          _callbacks.bcmp_resource_response_fn(resource_reply->node_id, resource_reply);
+        }
+        break;
+      }
       default: {
         rval = BM_SERIAL_UNSUPPORTED_MSG;
         break;
