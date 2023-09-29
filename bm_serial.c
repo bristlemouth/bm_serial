@@ -1008,7 +1008,7 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       }
       case BM_SERIAL_RESOURCE_REPLY: {
         if(_callbacks.bcmp_resource_response_fn) {
-          bm_serial_resource_table_reply_t* resource_reply = (bm_common_network_info_t*) packet->payload;
+          bm_serial_resource_table_reply_t* resource_reply = (bm_serial_resource_table_reply_t*) packet->payload;
           _callbacks.bcmp_resource_response_fn(resource_reply->node_id, resource_reply);
         }
         break;
