@@ -716,7 +716,7 @@ bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id, bm_serial_device_i
   ( void ) node_id;
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
-    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_device_info_reply_t);
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_device_info_reply_t) + bcmp_info->dev_name_len + bcmp_info->ver_str_len;
     bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REPLY, 0, message_len);
 
     if(!packet) {
@@ -724,7 +724,7 @@ bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id, bm_serial_device_i
       break;
     }
     bm_serial_device_info_reply_t *device_info_reply_msg = (bm_serial_device_info_reply_t *)packet->payload;
-    memcpy(device_info_reply_msg, bcmp_info, sizeof(bm_serial_device_info_reply_t));
+    memcpy(device_info_reply_msg, bcmp_info, sizeof(bm_serial_device_info_reply_t)+ bcmp_info->dev_name_len + bcmp_info->ver_str_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
