@@ -717,7 +717,7 @@ bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id, bm_serial_device_i
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_device_info_reply_t);
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REPLY, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -738,7 +738,7 @@ bm_serial_error_e bm_serial_send_resource_request(uint64_t node_id){
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_request_t);
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_RESOURCE_REQ, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
@@ -760,7 +760,7 @@ bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_reso
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_request_t);
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_DEVICE_INFO_REQ, 0, message_len);
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_RESOURCE_REPLY, 0, message_len);
 
     if(!packet) {
       rval = BM_SERIAL_OUT_OF_MEMORY;
