@@ -775,14 +775,12 @@ bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_reso
     uint16_t num_pubs = bcmp_resource->num_pubs;
     while(num_pubs){
         bcmp_resource_t * cur_resource = (bcmp_resource_t *)(&bcmp_resource->resource_list[length_of_resources]);
-        printf("\t* %.*s\n",cur_resource->resource_len, cur_resource->resource);
         length_of_resources += (sizeof(bcmp_resource_t) + cur_resource->resource_len);
         num_pubs--;
     }
     uint16_t num_subs = bcmp_resource->num_subs;
     while(num_subs){
         bcmp_resource_t * cur_resource = (bcmp_resource_t *)(&bcmp_resource->resource_list[length_of_resources]);
-        printf("\t* %.*s\n",cur_resource->resource_len, cur_resource->resource);
         length_of_resources += (sizeof(bcmp_resource_t) + cur_resource->resource_len);
         num_subs--;
     }
