@@ -769,7 +769,7 @@ bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_reso
   ( void ) node_id;
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
-    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_request_t);
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_reply_t);
 
     size_t length_of_resources = 0;
     uint16_t num_pubs = bcmp_resource->num_pubs;
