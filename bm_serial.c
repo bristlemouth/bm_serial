@@ -755,11 +755,40 @@ bm_serial_error_e bm_serial_send_resource_request(uint64_t node_id){
   return rval;
 }
 
+// TODO - This struct is defined in bcmp_messages.h, but that is not included in this repo yet.
+// We should eventually include it, or have this struct moved into the common messages repo.
+// Perhaps this can happen when we do this ticket: SC-195824
+typedef struct {
+  // Length of resource name
+  uint16_t resource_len;
+  // Name of resource
+  char resource[0];
+} __attribute__((packed)) bcmp_resource_t;
+
 bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_resource_table_reply_t* bcmp_resource) {
   ( void ) node_id;
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_resource_table_request_t);
+
+    size_t length_of_resources = 0;
+    uint16_t num_pubs = bcmp_resource->num_pubs;
+    while(num_pubs){
+        bcmp_resource_t * cur_resource = (bcmp_resource_t *)(&bcmp_resource->resource_list[length_of_resources]);
+        printf("\t* %.*s\n",cur_resource->resource_len, cur_resource->resource);
+        length_of_resources += (sizeof(bcmp_resource_t) + cur_resource->resource_len);
+        num_pubs--;
+    }
+    uint16_t num_subs = bcmp_resource->num_subs;
+    while(num_subs){
+        bcmp_resource_t * cur_resource = (bcmp_resource_t *)(&bcmp_resource->resource_list[length_of_resources]);
+        printf("\t* %.*s\n",cur_resource->resource_len, cur_resource->resource);
+        length_of_resources += (sizeof(bcmp_resource_t) + cur_resource->resource_len);
+        num_subs--;
+    }
+
+    message_len += length_of_resources;
+
     bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_RESOURCE_REPLY, 0, message_len);
 
     if(!packet) {
