@@ -794,7 +794,7 @@ bm_serial_error_e bm_serial_send_resource_reply(uint64_t node_id, bm_serial_reso
       break;
     }
     bm_serial_resource_table_reply_t *resource_req_msg = (bm_serial_resource_table_reply_t *)packet->payload;
-    memcpy(resource_req_msg, bcmp_resource, sizeof(bm_serial_resource_table_reply_t));
+    memcpy(resource_req_msg, bcmp_resource, sizeof(bm_serial_resource_table_reply_t) + length_of_resources);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
     if(!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
