@@ -342,11 +342,11 @@ bm_serial_error_e bm_serial_send_network_info(
            sizeof(bm_common_config_crc_t));
     memcpy(&network_info->fw_info, fw_info, sizeof(bm_common_fw_version_t));
     network_info->num_nodes = num_nodes;
+    size_t node_list_size = sizeof(uint64_t) * num_nodes;
     memcpy(&network_info->node_list_and_cbor_config_map, node_id_list,
-           sizeof(uint64_t) * num_nodes);
+           node_list_size);
     network_info->map_size_bytes = config_map_size;
-    size_t end_of_node_list = sizeof(uint64_t) * num_nodes;
-    memcpy(&network_info->node_list_and_cbor_config_map[end_of_node_list], cbor_config_map, config_map_size);
+    memcpy(&network_info->node_list_and_cbor_config_map[node_list_size], cbor_config_map, config_map_size);
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
