@@ -380,7 +380,10 @@ TEST_F(NCPTest, NetworkInfoTest) {
   uint64_t node_list[] = {12345678};
   uint16_t num_nodes = 1;
 
-  EXPECT_EQ(bm_serial_send_network_info((uint32_t)1234, &config_crc, &fw_info, num_nodes, node_list), BM_SERIAL_OK);
+  // {"Hello":"World"}
+  uint8_t cbor_map[] = {0xA1,0x65,0x48,0x65,0x6C,0x6C,0x6F,0x65,0x57,0x6F,0x72,0x6C,0x64};
+
+  EXPECT_EQ(bm_serial_send_network_info((uint32_t)1234, &config_crc, &fw_info, num_nodes, node_list, sizeof(cbor_map), cbor_map), BM_SERIAL_OK);
   EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len), BM_SERIAL_OK);
   EXPECT_TRUE(fake_network_info_fn_called);
 }
