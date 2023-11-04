@@ -346,7 +346,8 @@ bm_serial_error_e bm_serial_send_network_info(
     memcpy(&network_info->node_list_and_cbor_config_map, node_id_list,
            node_list_size);
     network_info->map_size_bytes = config_map_size;
-    memcpy(&network_info->node_list_and_cbor_config_map[node_list_size], cbor_config_map, config_map_size);
+    memcpy(&network_info->node_list_and_cbor_config_map[node_list_size],
+           cbor_config_map, config_map_size);
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
