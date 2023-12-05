@@ -410,7 +410,9 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
 bm_serial_error_e bm_serial_send_reboot_info(uint64_t node_id,
                                              uint32_t reboot_reason,
                                              uint32_t gitSHA,
-                                             uint32_t reboot_count) {
+                                             uint32_t reboot_count,
+                                             uint32_t pc,
+                                             uint32_t lr) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len =
@@ -429,6 +431,8 @@ bm_serial_error_e bm_serial_send_reboot_info(uint64_t node_id,
     reboot_info->reboot_reason = reboot_reason;
     reboot_info->gitSHA = gitSHA;
     reboot_info->reboot_count = reboot_count;
+    reboot_info->pc = pc;
+    reboot_info->lr = lr;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
     if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
       rval = BM_SERIAL_TX_ERR;
@@ -1047,7 +1051,8 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet,
             (bm_serial_reboot_info_t *)packet->payload;
         _callbacks.reboot_info_fn(
             reboot_info->node_id, reboot_info->reboot_reason,
-            reboot_info->gitSHA, reboot_info->reboot_count);
+            reboot_info->gitSHA, reboot_info->reboot_count,
+            reboot_info->pc, reboot_info->lr);
       }
       break;
     }
