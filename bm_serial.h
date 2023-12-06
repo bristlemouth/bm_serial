@@ -41,7 +41,8 @@ typedef struct {
 
   // Function called when reboot info is received.
   bool (*reboot_info_fn)(uint64_t node_id, uint32_t reboot_reason,
-                         uint32_t gitSHA, uint32_t reboot_count);
+                         uint32_t gitSHA, uint32_t reboot_count,
+                         uint32_t pc, uint32_t lr);
 
   // Function called when dfu start message is recieved.
   bool (*dfu_start_fn)(bm_serial_dfu_start_t *dfu_start);
@@ -138,7 +139,9 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result);
 bm_serial_error_e bm_serial_send_reboot_info(uint64_t node_id,
                                              uint32_t reboot_reason,
                                              uint32_t gitSHA,
-                                             uint32_t reboot_count);
+                                             uint32_t reboot_count,
+                                             uint32_t pc,
+                                             uint32_t lr);
 
 bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start);
 bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length,

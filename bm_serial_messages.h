@@ -139,6 +139,8 @@ typedef struct {
   uint32_t gitSHA;
   // reboot count
   uint32_t reboot_count;
+  uint32_t pc;
+  uint32_t lr;
 } __attribute__ ((packed)) bm_serial_reboot_info_t;
 
 typedef struct {
