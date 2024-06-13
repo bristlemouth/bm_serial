@@ -3,27 +3,55 @@ import busio
 
 
 class BristlemouthSerial:
-    def __init__(self, uart=None) -> None:
+
+    def __init__(self, uart=None, node_id: int = 0xC0FFEEEEF0CACC1A) -> None:
+        self.node_id = node_id
         if uart is None:
             self.uart = busio.UART(board.TX, board.RX, baudrate=115200)
         else:
             self.uart = uart
 
-    def spotter_tx(self, data) -> int | None:
-        packet = self.build_spotter_tx_packet(data)
-        return self.uart.write(packet)
-
-    def build_spotter_tx_packet(self, data: bytearray) -> bytes:
+    def spotter_tx(self, data: bytes) -> int | None:
+        topic = b"spotter/transmit-data"
         packet = (
-            bytearray.fromhex("020000001acccaf0eeeeffc001011500")
-            + b"spotter/transmit-data\x01"
+            self.get_pub_header()
+            + len(topic).to_bytes(2, "little")
+            + topic
+            + b"\x01"
             + data
         )
+        cobs = self.finalize_packet(packet)
+        return self.uart.write(cobs)
+
+    def spotter_log(self, filename: str, data: str) -> int | None:
+        topic = b"spotter/fprintf"
+        packet = (
+            self.get_pub_header()
+            + len(topic).to_bytes(2, "little")
+            + topic
+            + ("\x00" * 8)
+            + len(filename).to_bytes(2, "little")
+            + (len(data) + 1).to_bytes(2, "little")
+            + filename
+            + data
+            + "\n"
+        )
+        cobs = self.finalize_packet(packet)
+        return self.uart.write(cobs)
+
+    def finalize_packet(self, packet: bytearray) -> bytes:
         checksum = self.crc(0, packet)
         packet[2] = checksum & 0xFF
         packet[3] = (checksum >> 8) & 0xFF
         cobs = self.cobs_encode(packet) + b"\x00"
         return cobs
+
+    def get_pub_header(self) -> bytearray:
+        return (
+            bytearray.fromhex("02000000")
+            + self.node_id.to_bytes(8, "little")
+            + bytearray.fromhex("0101")
+        )
 
     # Adapted from https://github.com/cmcqueen/cobs-python
     def cobs_encode(self, in_bytes: bytes) -> bytes:
@@ -49,7 +77,7 @@ class BristlemouthSerial:
             out_bytes += in_bytes[search_start_idx:idx]
         return bytes(out_bytes)
 
-    def crc(self, seed: int, src: bytearray) -> int:
+    def crc(self, seed: int, src: bytes) -> int:
         e, f = 0, 0
         for i in src:
             e = (seed ^ i) & 0xFF
