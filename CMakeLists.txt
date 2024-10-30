@@ -41,6 +41,9 @@ else()
 set(BM_SERIAL_DIR ${CMAKE_CURRENT_LIST_DIR})
 message(status "BM SERIAL DIR ${BM_SERIAL_DIR}")
 
+# Include BM Common Messages
+add_subdirectory(${BM_SERIAL_DIR}/bm_common_messages bm_common_messages)
+
 set(BM_SERIAL_FILES
     ${BM_SERIAL_DIR}/bm_serial.c
     ${BM_SERIAL_DIR}/bm_serial_crc16.c
