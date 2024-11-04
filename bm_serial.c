@@ -528,7 +528,7 @@ bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success,
 }
 
 bm_serial_error_e bm_serial_cfg_get(uint64_t node_id,
-                                    bm_common_config_partition_e partition,
+                                    BmConfigPartition partition,
                                     size_t key_len, const char *key) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -559,7 +559,7 @@ bm_serial_error_e bm_serial_cfg_get(uint64_t node_id,
 }
 
 bm_serial_error_e bm_serial_cfg_set(uint64_t node_id,
-                                    bm_common_config_partition_e partition,
+                                    BmConfigPartition partition,
                                     size_t key_len, const char *key,
                                     size_t value_size, void *val) {
   bm_serial_error_e rval = BM_SERIAL_OK;
@@ -594,7 +594,7 @@ bm_serial_error_e bm_serial_cfg_set(uint64_t node_id,
 }
 
 bm_serial_error_e bm_serial_cfg_value(uint64_t node_id,
-                                      bm_common_config_partition_e partition,
+                                      BmConfigPartition partition,
                                       uint32_t data_length, void *data) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -625,7 +625,7 @@ bm_serial_error_e bm_serial_cfg_value(uint64_t node_id,
 }
 
 bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id,
-                                       bm_common_config_partition_e partition) {
+                                       BmConfigPartition partition) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len =
@@ -653,7 +653,7 @@ bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id,
 
 bm_serial_error_e
 bm_serial_cfg_status_request(uint64_t node_id,
-                             bm_common_config_partition_e partition) {
+                             BmConfigPartition partition) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
     uint16_t message_len =
@@ -681,7 +681,7 @@ bm_serial_cfg_status_request(uint64_t node_id,
 
 bm_serial_error_e
 bm_serial_cfg_status_response(uint64_t node_id,
-                              bm_common_config_partition_e partition,
+                              BmConfigPartition partition,
                               bool commited, uint8_t num_keys, void *keys) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -723,7 +723,7 @@ bm_serial_cfg_status_response(uint64_t node_id,
 
 bm_serial_error_e
 bm_serial_cfg_delete_request(uint64_t node_id,
-                             bm_common_config_partition_e partition,
+                             BmConfigPartition partition,
                              size_t key_len, const char *key) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -755,7 +755,7 @@ bm_serial_cfg_delete_request(uint64_t node_id,
 
 bm_serial_error_e
 bm_serial_cfg_delete_response(uint64_t node_id,
-                              bm_common_config_partition_e partition,
+                              BmConfigPartition partition,
                               size_t key_len, const char *key, bool success) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
