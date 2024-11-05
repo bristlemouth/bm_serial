@@ -6,7 +6,9 @@ target_include_directories(bm_serial_tests
     PRIVATE
     ${SRC_DIR}
     ${TEST_DIR}
-    ${BM_COMMON_MESSAGES_INCLUDES}
+    ${bmcore_SOURCE_DIR}/common
+    ${bmcore_SOURCE_DIR}/bcmp
+    ${bmcore_SOURCE_DIR}/third_party/tinycbor/src
 )
 
 target_sources(bm_serial_tests
