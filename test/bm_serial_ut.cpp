@@ -328,9 +328,9 @@ TEST_F(NCPTest, ConfigTest) {
   EXPECT_TRUE(fake_cfg_status_request_fn_called);
 
   const char hello[] = "hello_world";
-  uint32_t len = sizeof(bm_common_config_status_key_data_t) + sizeof(hello);
+  uint32_t len = sizeof(BmConfigStatusKeyData) + sizeof(hello);
   uint8_t * keybuffer = (uint8_t*) malloc(len);
-  bm_common_config_status_key_data_t *key = (bm_common_config_status_key_data_t *)keybuffer;
+  BmConfigStatusKeyData *key = (BmConfigStatusKeyData *)keybuffer;
   key->key_length = sizeof(hello);
   memcpy(key->key, hello, sizeof(hello));
 
@@ -353,7 +353,7 @@ TEST_F(NCPTest, ConfigTest) {
 }
 
 static bool fake_network_info_fn_called;
-static bool fake_network_info_fn(bm_common_network_info_t* network_info) {
+static bool fake_network_info_fn(BmNetworkInfo* network_info) {
   (void) network_info;
   fake_network_info_fn_called = true;
   return true;
@@ -365,12 +365,12 @@ TEST_F(NCPTest, NetworkInfoTest) {
   bm_serial_set_callbacks(&_callbacks);
   fake_network_info_fn_called = false;
 
-  bm_common_config_crc_t config_crc = {
+  BmConfigCrc config_crc = {
     .partition = BM_CFG_PARTITION_SYSTEM,
     .crc32 = 1234,
   };
 
-  bm_common_fw_version_t fw_info = {
+  BmFwVersion fw_info = {
     .major = 1,
     .minor = 2,
     .revision = 3,
