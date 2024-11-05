@@ -15,7 +15,6 @@ set(CMAKE_CXX_EXTENSIONS ON)
 if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_compile_options(
     -Wall
-    -Wextra
     -Werror
     -O0
     -g
@@ -24,12 +23,28 @@ message(STATUS "Native compiling - Building Tests")
 set(SRC_DIR ${CMAKE_SOURCE_DIR})
 set(TEST_DIR ${CMAKE_SOURCE_DIR}/test)
 
-# Include BM Common Messages
-add_subdirectory(${SRC_DIR}/bm_common_messages bm_common_messages)
+include(FetchContent)
+FetchContent_Declare(
+  bmcore
+  GIT_REPOSITORY https://github.com/bristlemouth/bm_core.git
+  GIT_TAG        main
+  GIT_SUBMODULES "third_party"
+)
+FetchContent_GetProperties(bmcore)
+if(NOT bmcore_POPULATED)
+    FetchContent_Populate(bmcore)
+endif()
+FetchContent_Declare(
+  googletest
+  GIT_REPOSITORY https://github.com/google/googletest.git
+  GIT_TAG        v1.15.0
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
 
 # Setup testing
 include(CTest)
-add_subdirectory("third_party/googletest")
 add_subdirectory("test")
 
 else()
