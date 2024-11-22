@@ -35,6 +35,9 @@ typedef enum {
   BM_SERIAL_RESOURCE_REQ = 0x52,
   BM_SERIAL_RESOURCE_REPLY = 0x53,
 
+  BM_SERIAL_NODE_ID_REQ = 0x60,
+  BM_SERIAL_NODE_ID_REPLY = 0x61,
+
 } bm_serial_message_t;
 
 typedef struct {
