@@ -853,6 +853,46 @@ bm_serial_send_resource_reply(uint64_t node_id,
   return rval;
 }
 
+bm_serial_error_e bm_serial_send_node_id_request(void) {
+  uint16_t message_len =
+      sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet =
+      _bm_serial_get_packet(BM_SERIAL_NODE_ID_REQ, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+
+  }
+
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+bm_serial_error_e bm_serial_send_node_id_reply(uint64_t node_id) {
+  uint16_t message_len =
+      sizeof(bm_serial_packet_t) + sizeof(uint64_t);
+  bm_serial_packet_t *packet =
+      _bm_serial_get_packet(BM_SERIAL_NODE_ID_REPLY, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  uint64_t *node_id_reply_message =
+      (uint64_t *)packet->payload;
+  *node_id_reply_message = node_id;
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
 // Process bm_serial packet (not COBS anymore!)
 bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
   bm_serial_error_e rval = BM_SERIAL_OK;
@@ -1101,6 +1141,19 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         bm_serial_resource_table_reply_t *resource_reply =
             (bm_serial_resource_table_reply_t *)packet->payload;
         _callbacks.bcmp_resource_response_fn(resource_reply->node_id, resource_reply);
+      }
+      break;
+    }
+    case BM_SERIAL_NODE_ID_REQ: {
+      if (_callbacks.node_id_request_fn) {
+        _callbacks.node_id_request_fn();
+      }
+      break;
+    }
+    case BM_SERIAL_NODE_ID_REPLY: {
+      if (_callbacks.node_id_reply_fn) {
+        uint64_t *node_id = (uint64_t *)packet->payload;
+        _callbacks.node_id_reply_fn(*node_id);
       }
       break;
     }
