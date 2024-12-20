@@ -95,14 +95,20 @@ typedef struct {
   bool (*bcmp_resource_request_fn)(uint64_t node_id);
 
   // Function called when a BCMP resource response is received.
-  bool (*bcmp_resource_response_fn)(
-      uint64_t node_id, bm_serial_resource_table_reply_t *bcmp_resource);
+  bool (*bcmp_resource_response_fn)(uint64_t node_id,
+                                    bm_serial_resource_table_reply_t *bcmp_resource);
 
   // Function called when a node request is received
   bool (*node_id_request_fn)(void);
 
   // Function called when a node reply is received
   bool (*node_id_reply_fn)(uint64_t node_id);
+
+  // Function called when a rtc get request is received
+  bool (*rtc_get_request_fn)(void);
+
+  // Function called when a rtc get reply is received
+  bool (*rtc_get_reply_fn)(uint64_t utc_s);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -163,15 +169,15 @@ bm_serial_error_e
 bm_serial_send_resource_reply(uint64_t node_id,
                               bm_serial_resource_table_reply_t *bcmp_resource);
 
-bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32,
-                                              BmConfigCrc *config_crc,
-                                              BmFwVersion *fw_info,
-                                              uint16_t num_nodes, uint64_t *node_id_list,
-                                              uint16_t config_map_size,
+bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, BmConfigCrc *config_crc,
+                                              BmFwVersion *fw_info, uint16_t num_nodes,
+                                              uint64_t *node_id_list, uint16_t config_map_size,
                                               uint8_t *cbor_config_map);
 
 bm_serial_error_e bm_serial_send_node_id_request(void);
 bm_serial_error_e bm_serial_send_node_id_reply(uint64_t node_id);
+bm_serial_error_e bm_serial_send_rtc_get_request(void);
+bm_serial_error_e bm_serial_send_rtc_get_reply(uint64_t utc_s);
 
 #ifdef __cplusplus
 }

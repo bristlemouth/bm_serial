@@ -302,11 +302,9 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
   \param[in] *cbor_config_map
   \return BM_SERIAL_OK if sent, nonzero otherwise
 */
-bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32,
-                                              BmConfigCrc *config_crc,
-                                              BmFwVersion *fw_info,
-                                              uint16_t num_nodes, uint64_t *node_id_list,
-                                              uint16_t config_map_size,
+bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, BmConfigCrc *config_crc,
+                                              BmFwVersion *fw_info, uint16_t num_nodes,
+                                              uint64_t *node_id_list, uint16_t config_map_size,
                                               uint8_t *cbor_config_map) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -854,14 +852,11 @@ bm_serial_send_resource_reply(uint64_t node_id,
 }
 
 bm_serial_error_e bm_serial_send_node_id_request(void) {
-  uint16_t message_len =
-      sizeof(bm_serial_packet_t);
-  bm_serial_packet_t *packet =
-      _bm_serial_get_packet(BM_SERIAL_NODE_ID_REQ, 0, message_len);
+  uint16_t message_len = sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NODE_ID_REQ, 0, message_len);
 
   if (!packet) {
     return BM_SERIAL_OUT_OF_MEMORY;
-
   }
 
   packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
@@ -873,18 +868,49 @@ bm_serial_error_e bm_serial_send_node_id_request(void) {
 }
 
 bm_serial_error_e bm_serial_send_node_id_reply(uint64_t node_id) {
-  uint16_t message_len =
-      sizeof(bm_serial_packet_t) + sizeof(uint64_t);
-  bm_serial_packet_t *packet =
-      _bm_serial_get_packet(BM_SERIAL_NODE_ID_REPLY, 0, message_len);
+  uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(uint64_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NODE_ID_REPLY, 0, message_len);
 
   if (!packet) {
     return BM_SERIAL_OUT_OF_MEMORY;
   }
 
-  uint64_t *node_id_reply_message =
-      (uint64_t *)packet->payload;
+  uint64_t *node_id_reply_message = (uint64_t *)packet->payload;
   *node_id_reply_message = node_id;
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+bm_serial_error_e bm_serial_send_rtc_get_request(void) {
+  uint16_t message_len = sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_RTC_GET_REQ, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+bm_serial_error_e bm_serial_send_rtc_get_reply(uint64_t utc_s) {
+  uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(uint64_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_RTC_GET_REPLY, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  uint64_t *rtc_get_reply_message = (uint64_t *)packet->payload;
+  *rtc_get_reply_message = utc_s;
   packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
   if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
     return BM_SERIAL_TX_ERR;
@@ -1154,6 +1180,19 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       if (_callbacks.node_id_reply_fn) {
         uint64_t *node_id = (uint64_t *)packet->payload;
         _callbacks.node_id_reply_fn(*node_id);
+      }
+      break;
+    }
+    case BM_SERIAL_RTC_GET_REQ: {
+      if (_callbacks.rtc_get_request_fn) {
+        _callbacks.rtc_get_request_fn();
+      }
+      break;
+    }
+    case BM_SERIAL_RTC_GET_REPLY: {
+      if (_callbacks.rtc_get_reply_fn) {
+        uint64_t *utc_s = (uint64_t *)packet->payload;
+        _callbacks.rtc_get_reply_fn(*utc_s);
       }
       break;
     }

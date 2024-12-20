@@ -37,6 +37,8 @@ typedef enum {
 
   BM_SERIAL_NODE_ID_REQ = 0x60,
   BM_SERIAL_NODE_ID_REPLY = 0x61,
+  BM_SERIAL_RTC_GET_REQ = 0x62,
+  BM_SERIAL_RTC_GET_REPLY = 0x63,
 
 } bm_serial_message_t;
 
