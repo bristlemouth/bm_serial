@@ -50,7 +50,9 @@ protected:
 };
 
 // Fake serial_tx function just copies data into buffer so we can process it
-bool fake_tx_fn(const uint8_t *buff, size_t len) {
+bool fake_tx_fn(const uint8_t *buff, size_t len, bm_serial_message_t message) {
+  (void)message;
+
   if (len >= sizeof(serial_tx_buff)) {
     serial_tx_buff_len = 0;
     return false;

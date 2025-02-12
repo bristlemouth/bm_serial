@@ -38,6 +38,8 @@ typedef enum {
   BM_SERIAL_NODE_ID_REQ = 0x60,
   BM_SERIAL_NODE_ID_REPLY = 0x61,
 
+  BM_SERIAL_BAUD_RATE_REQ = 0x70,
+  BM_SERIAL_BAUD_RATE_REPLY = 0x71,
 } bm_serial_message_t;
 
 typedef struct {
@@ -45,7 +47,7 @@ typedef struct {
   uint8_t flags;
   uint16_t crc16;
   uint8_t payload[0];
-} __attribute__ ((packed)) bm_serial_packet_t;
+} __attribute__((packed)) bm_serial_packet_t;
 
 typedef struct {
   uint64_t node_id;
@@ -55,12 +57,12 @@ typedef struct {
   uint8_t topic[0];
   // message goes after topic
   // len not included since we get the total len from COBS
-} __attribute__ ((packed)) bm_serial_pub_header_t;
+} __attribute__((packed)) bm_serial_pub_header_t;
 
 typedef struct {
   uint16_t topic_len;
   uint8_t topic[0];
-} __attribute__ ((packed)) bm_serial_sub_unsub_header_t;
+} __attribute__((packed)) bm_serial_sub_unsub_header_t;
 
 typedef struct {
   uint64_t node_id;
@@ -68,7 +70,7 @@ typedef struct {
   // Will use later to signify if this should go out cellular/satellite or both
   uint8_t flags;
   uint8_t data[0];
-} __attribute__ ((packed)) bm_serial_net_msg_header_t;
+} __attribute__((packed)) bm_serial_net_msg_header_t;
 
 typedef struct {
   uint16_t year;
@@ -78,21 +80,21 @@ typedef struct {
   uint8_t minute;
   uint8_t second;
   uint32_t us;
-} __attribute__ ((packed)) bm_serial_time_t;
+} __attribute__((packed)) bm_serial_time_t;
 
 typedef struct {
   // Can be used to determine time source and other things
   uint32_t flags;
 
   bm_serial_time_t time;
-} __attribute__ ((packed)) bm_serial_rtc_t;
+} __attribute__((packed)) bm_serial_rtc_t;
 
 typedef struct {
   // Node id of unit reporting test (leave blank for test request)
   uint64_t node_id;
   // Flags for self test result
   uint32_t result;
-} __attribute__ ((packed)) bm_serial_self_test_t;
+} __attribute__((packed)) bm_serial_self_test_t;
 
 // DFU BELOW HERE.
 typedef struct {
@@ -112,9 +114,9 @@ typedef struct {
   uint32_t filter_key;
   // git hash
   uint32_t gitSHA;
-} __attribute__ ((packed)) bm_serial_dfu_start_t;
+} __attribute__((packed)) bm_serial_dfu_start_t;
 
-#define DFU_CHUNK_NAK_BITFLAG (1<<31)
+#define DFU_CHUNK_NAK_BITFLAG (1 << 31)
 typedef struct {
   // offset from image start
   uint32_t offset;
@@ -122,7 +124,7 @@ typedef struct {
   uint32_t length;
   // data packet
   uint8_t data[0];
-} __attribute__ ((packed)) bm_serial_dfu_chunk_t;
+} __attribute__((packed)) bm_serial_dfu_chunk_t;
 
 typedef struct {
   // Node id of dfu unit
@@ -131,7 +133,7 @@ typedef struct {
   bool success;
   // Errors for dfu result
   uint32_t dfu_status;
-} __attribute__ ((packed)) bm_serial_dfu_finish_t;
+} __attribute__((packed)) bm_serial_dfu_finish_t;
 
 typedef struct {
   // Node id
@@ -144,7 +146,7 @@ typedef struct {
   uint32_t reboot_count;
   uint32_t pc;
   uint32_t lr;
-} __attribute__ ((packed)) bm_serial_reboot_info_t;
+} __attribute__((packed)) bm_serial_reboot_info_t;
 
 typedef struct {
   // Node ID of the target node for which the request is being made. (Zeroed = all nodes)
