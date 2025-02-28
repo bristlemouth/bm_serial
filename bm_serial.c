@@ -119,7 +119,7 @@ bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *payload,
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
     uint16_t bm_serial_message_len = sizeof(bm_serial_packet_t) + len;
-    if (!_callbacks.tx_fn((uint8_t *)packet, bm_serial_message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, bm_serial_message_len, type)) {
       rval = BM_SERIAL_TX_ERR;
 
       break;
@@ -173,7 +173,7 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_PUB)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -195,6 +195,7 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
 */
 static bm_serial_error_e _bm_serial_sub_unsub(const char *topic, uint16_t topic_len, bool sub) {
   bm_serial_error_e rval = BM_SERIAL_OK;
+  bm_serial_message_t message_type = BM_SERIAL_SUB;
 
   do {
     rval = _bm_serial_validate_topic_and_cb(topic, topic_len);
@@ -210,6 +211,7 @@ static bm_serial_error_e _bm_serial_sub_unsub(const char *topic, uint16_t topic_
       packet = _bm_serial_get_packet(BM_SERIAL_SUB, 0, message_len);
     } else {
       packet = _bm_serial_get_packet(BM_SERIAL_UNSUB, 0, message_len);
+      message_type = BM_SERIAL_UNSUB;
     }
 
     if (!packet) {
@@ -223,7 +225,7 @@ static bm_serial_error_e _bm_serial_sub_unsub(const char *topic, uint16_t topic_
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, message_type)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -281,7 +283,7 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_RTC_SET)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -302,11 +304,9 @@ bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time) {
   \param[in] *cbor_config_map
   \return BM_SERIAL_OK if sent, nonzero otherwise
 */
-bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32,
-                                              BmConfigCrc *config_crc,
-                                              BmFwVersion *fw_info,
-                                              uint16_t num_nodes, uint64_t *node_id_list,
-                                              uint16_t config_map_size,
+bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, BmConfigCrc *config_crc,
+                                              BmFwVersion *fw_info, uint16_t num_nodes,
+                                              uint64_t *node_id_list, uint16_t config_map_size,
                                               uint8_t *cbor_config_map) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
@@ -339,7 +339,7 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32,
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_NETWORK_INFO)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -374,7 +374,7 @@ bm_serial_error_e bm_serial_send_self_test(uint64_t node_id, uint32_t result) {
 
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_SELF_TEST)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -414,7 +414,7 @@ bm_serial_error_e bm_serial_send_reboot_info(uint64_t node_id, uint32_t reboot_r
     reboot_info->pc = pc;
     reboot_info->lr = lr;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_REBOOT_INFO)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -437,7 +437,7 @@ bm_serial_error_e bm_serial_dfu_send_start(bm_serial_dfu_start_t *dfu_start) {
     memcpy(msg_start, dfu_start, sizeof(bm_serial_dfu_start_t));
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_DFU_START)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -464,7 +464,7 @@ bm_serial_error_e bm_serial_dfu_send_chunk(uint32_t offset, size_t length, uint8
     memcpy(dfu_chunk->data, data, length);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_DFU_CHUNK)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -490,7 +490,7 @@ bm_serial_error_e bm_serial_dfu_send_finish(uint64_t node_id, bool success, uint
     dfu_finish->success = success;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_DFU_RESULT)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -517,7 +517,7 @@ bm_serial_error_e bm_serial_cfg_get(uint64_t node_id, BmConfigPartition partitio
     cfg_get_msg->key_length = key_len;
     memcpy(cfg_get_msg->key, key, key_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_GET)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -548,7 +548,7 @@ bm_serial_error_e bm_serial_cfg_set(uint64_t node_id, BmConfigPartition partitio
     memcpy(cfg_set_msg->keyAndData, key, key_len);
     memcpy(&cfg_set_msg->keyAndData[key_len], val, value_size);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_SET)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -575,7 +575,7 @@ bm_serial_error_e bm_serial_cfg_value(uint64_t node_id, BmConfigPartition partit
     cfg_value_msg->data_length = data_length;
     memcpy(cfg_value_msg->data, data, data_length);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_VALUE)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -598,7 +598,7 @@ bm_serial_error_e bm_serial_cfg_commit(uint64_t node_id, BmConfigPartition parti
     cfg_commit_msg->header.source_node_id = 0; // UNUSED.
     cfg_commit_msg->partition = partition;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_COMMIT)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -622,7 +622,7 @@ bm_serial_error_e bm_serial_cfg_status_request(uint64_t node_id, BmConfigPartiti
     status_req_msg->header.source_node_id = 0; // UNUSED.
     status_req_msg->partition = partition;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_STATUS_REQ)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -658,7 +658,7 @@ bm_serial_error_e bm_serial_cfg_status_response(uint64_t node_id, BmConfigPartit
     status_resp_msg->num_keys = num_keys;
     memcpy(status_resp_msg->keyData, keys, key_data_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_STATUS_RESP)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -685,7 +685,7 @@ bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, BmConfigPartiti
     del_key_req->key_length = key_len;
     memcpy(del_key_req->key, key, key_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_DEL_REQ)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -713,7 +713,7 @@ bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, BmConfigPartit
     del_key_resp->key_length = key_len;
     memcpy(del_key_resp->key, key, key_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_CFG_DEL_RESP)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -736,7 +736,7 @@ bm_serial_error_e bm_serial_send_info_request(uint64_t node_id) {
         (bm_serial_device_info_request_t *)packet->payload;
     device_info_req_msg->target_node_id = node_id;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_DEVICE_INFO_REQ)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -764,7 +764,7 @@ bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id,
            sizeof(bm_serial_device_info_reply_t) + bcmp_info->dev_name_len +
                bcmp_info->ver_str_len);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_DEVICE_INFO_REPLY)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -787,7 +787,7 @@ bm_serial_error_e bm_serial_send_resource_request(uint64_t node_id) {
         (bm_serial_resource_table_request_t *)packet->payload;
     resource_req_msg->target_node_id = node_id;
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_RESOURCE_REQ)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -845,7 +845,7 @@ bm_serial_send_resource_reply(uint64_t node_id,
     memcpy(resource_req_msg, bcmp_resource,
            sizeof(bm_serial_resource_table_reply_t) + length_of_resources);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_RESOURCE_REPLY)) {
       rval = BM_SERIAL_TX_ERR;
       break;
     }
@@ -854,18 +854,15 @@ bm_serial_send_resource_reply(uint64_t node_id,
 }
 
 bm_serial_error_e bm_serial_send_node_id_request(void) {
-  uint16_t message_len =
-      sizeof(bm_serial_packet_t);
-  bm_serial_packet_t *packet =
-      _bm_serial_get_packet(BM_SERIAL_NODE_ID_REQ, 0, message_len);
+  uint16_t message_len = sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NODE_ID_REQ, 0, message_len);
 
   if (!packet) {
     return BM_SERIAL_OUT_OF_MEMORY;
-
   }
 
   packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-  if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_NODE_ID_REQ)) {
     return BM_SERIAL_TX_ERR;
   }
 
@@ -873,20 +870,51 @@ bm_serial_error_e bm_serial_send_node_id_request(void) {
 }
 
 bm_serial_error_e bm_serial_send_node_id_reply(uint64_t node_id) {
-  uint16_t message_len =
-      sizeof(bm_serial_packet_t) + sizeof(uint64_t);
-  bm_serial_packet_t *packet =
-      _bm_serial_get_packet(BM_SERIAL_NODE_ID_REPLY, 0, message_len);
+  uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(uint64_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NODE_ID_REPLY, 0, message_len);
 
   if (!packet) {
     return BM_SERIAL_OUT_OF_MEMORY;
   }
 
-  uint64_t *node_id_reply_message =
-      (uint64_t *)packet->payload;
+  uint64_t *node_id_reply_message = (uint64_t *)packet->payload;
   *node_id_reply_message = node_id;
   packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-  if (!_callbacks.tx_fn((uint8_t *)packet, message_len)) {
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_NODE_ID_REPLY)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+bm_serial_error_e bm_serial_send_baud_rate_request(uint32_t baud) {
+  uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(uint32_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_BAUD_RATE_REQ, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  uint32_t *baud_payload = (uint32_t *)packet->payload;
+  *baud_payload = baud;
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_BAUD_RATE_REQ)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+bm_serial_error_e bm_serial_send_baud_rate_reply(void) {
+  uint16_t message_len = sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_BAUD_RATE_REPLY, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_BAUD_RATE_REPLY)) {
     return BM_SERIAL_TX_ERR;
   }
 
@@ -1154,6 +1182,19 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       if (_callbacks.node_id_reply_fn) {
         uint64_t *node_id = (uint64_t *)packet->payload;
         _callbacks.node_id_reply_fn(*node_id);
+      }
+      break;
+    }
+    case BM_SERIAL_BAUD_RATE_REQ: {
+      if (_callbacks.baud_rate_negotiation_request_fn) {
+        uint32_t *baud_rate = (uint32_t *)packet->payload;
+        _callbacks.baud_rate_negotiation_request_fn(*baud_rate);
+      }
+      break;
+    }
+    case BM_SERIAL_BAUD_RATE_REPLY: {
+      if (_callbacks.baud_rate_negotiation_reply_fn) {
+        _callbacks.baud_rate_negotiation_reply_fn();
       }
       break;
     }
