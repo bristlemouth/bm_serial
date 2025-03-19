@@ -921,6 +921,22 @@ bm_serial_error_e bm_serial_send_baud_rate_reply(void) {
   return BM_SERIAL_OK;
 }
 
+bm_serial_error_e bm_serial_send_ack(void) {
+  uint16_t message_len = sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_ACK, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_ACK)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
 // Process bm_serial packet (not COBS anymore!)
 bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
   bm_serial_error_e rval = BM_SERIAL_OK;
