@@ -82,6 +82,12 @@ typedef struct {
   bool (*cfg_key_del_response_fn)(uint64_t node_id, BmConfigPartition partition, size_t key_len,
                                   const char *key, bool success);
 
+  // Function called when a cfg clear request is received.
+  bool (*cfg_clear_request_fn)(uint64_t node_id, BmConfigPartition partition);
+
+  // Function called when a cfg clear response is received.
+  bool (*cfg_clear_response_fn)(uint64_t node_id, BmConfigPartition partition, bool success);
+
   // Function called when a network info is received.
   bool (*network_info_fn)(BmNetworkInfo *network_info);
 
@@ -159,6 +165,9 @@ bm_serial_error_e bm_serial_cfg_delete_request(uint64_t node_id, BmConfigPartiti
                                                size_t key_len, const char *key);
 bm_serial_error_e bm_serial_cfg_delete_response(uint64_t node_id, BmConfigPartition partition,
                                                 size_t key_len, const char *key, bool success);
+bm_serial_error_e bm_serial_cfg_clear_request(uint64_t node_id, BmConfigPartition partition);
+bm_serial_error_e bm_serial_cfg_clear_response(uint64_t node_id, BmConfigPartition partition,
+                                               bool success);
 
 bm_serial_error_e bm_serial_send_info_request(uint64_t node_id);
 bm_serial_error_e bm_serial_send_info_reply(uint64_t node_id,
