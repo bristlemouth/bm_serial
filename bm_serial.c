@@ -1245,8 +1245,9 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
     }
     case BM_SERIAL_NODE_ID_REPLY: {
       if (_callbacks.node_id_reply_fn) {
-        uint64_t *node_id = (uint64_t *)packet->payload;
-        _callbacks.node_id_reply_fn(*node_id);
+        uint64_t node_id;
+        memcpy(&node_id, packet->payload, sizeof(node_id));
+        _callbacks.node_id_reply_fn(node_id);
       }
       break;
     }
