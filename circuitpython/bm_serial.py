@@ -145,6 +145,21 @@ class BristlemouthSerial:
         cobs = self.finalize_packet(packet)
         return self.lock_uart_and_write_bytes(cobs)
 
+    def spotter_print(self, data: str):
+        topic = b"spotter/printf"
+        packet = (
+            self.get_pub_header()
+            + len(topic).to_bytes(2, "little")
+            + topic
+            + b"\x00" * 8
+            + (0).to_bytes(2, "little")  # Zero filename length
+            + (len(data) + 1).to_bytes(2, "little")
+            + data.encode("utf-8")  # Convert data to bytes
+            + b"\n"
+        )
+        cobs = self.finalize_packet(packet)
+        return self.lock_uart_and_write_bytes(cobs)
+
     def lock_uart_and_write_bytes(self, bytes):
         fcntl.lockf(self.uart, fcntl.LOCK_EX)
         self.uart.write(bytes)
