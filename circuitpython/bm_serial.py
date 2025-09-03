@@ -43,13 +43,13 @@ class BristlemouthSerial:
 
     def __init__(self, uart=None, node_id: int = 0xC0FFEEEEF0CACC1A) -> None:
         self.node_id = node_id
-        self.sub_cbs = list()
+        self.sub_cbs = dict()
         if uart is None:
             self.uart = serial.Serial(port="/dev/ttyAMA0", baudrate=115200, timeout=0.5)
         else:
             self.uart = uart
 
-    def _read_until_idle(self, timeout: float = 1.0):
+    def _read_until_idle(self, timeout: float = 1.0) -> bytes:
         """
         Reads from the serial port until no data is received for a specified timeout period.
 
@@ -75,7 +75,15 @@ class BristlemouthSerial:
 
         return bytes(data)
 
-    def _process_publish_message(self, payload) -> None:
+    def _process_publish_message(self, payload: str) -> None:
+        """
+        Processes incoming published message.
+
+        Invokes callback associated with the topic published to the device.
+
+        Args:
+            ser (payload): Serial payload sent from companion device.
+        """
         format = "<QBBH"
 
         try:
@@ -87,13 +95,26 @@ class BristlemouthSerial:
             topic = str(payload[12 : 12 + topic_len])
             data_len = len(payload[12 + topic_len :])
             data = payload[12 + topic_len :]
-            for sub_cb in self.sub_cbs:
-                sub_cb(node_id, type, version, topic_len, topic, data_len, data)
+            for key in self.sub_cbs:
+                if topic == key:
+                    self.sub_cb[topic](
+                        node_id, type, version, topic_len, topic, data_len, data
+                    )
 
         except Exception:
             print("Error unpacking publish message")
 
     def bristlemouth_process(self, timeout_s: float = 0.5) -> None:
+        """
+        Read incoming serial data until an idle line is detected.
+
+        Handles the data based on the type of packet that has been
+        received.
+
+        Args:
+            timeout_s (float): Timeout in seconds to wait for incoming serial
+                               data
+        """
         format = "<BBH"
         data = self._read_until_idle(timeout_s)
 
@@ -107,17 +128,49 @@ class BristlemouthSerial:
             except Exception:
                 print("Error unpacking data from read output")
 
-    def bristlemouth_sub(self, topic: str, fn):
+    def bristlemouth_sub(self, topic: str, fn) -> Int | None:
+        """
+        Subscribe to a topic on the Bristlemouth network.
+
+        Whenever data is published to this topic on the Bristlemouth network
+        the callback associated through this method is invoked.
+        Only one callback may be associated with a topic.
+
+        Args:
+            topic (str): Topic string to subscribe to
+            fn: Function to use when topic is published to network
+
+        Returns:
+            int: The number of bytes serially written to the companion device
+            None: Device could not properly send data serially
+        """
         packet = (
             bytearray.fromhex("03000000")
             + len(topic).to_bytes(2, "little")
             + bytearray(topic.encode("utf-8"))
         )
         cobs = self.finalize_packet(packet)
-        self.sub_cbs.append(fn)
+
+        # Set callback for topic
+        if fn is not None:
+            self.sub_cbs[topic] = fn
         return self.lock_uart_and_write_bytes(cobs)
 
-    def spotter_tx(self, data: bytes):
+    def spotter_tx(self, data: bytes) -> int | None:
+        """
+        Transmit data to Sofar backend.
+
+        This message transmits raw bytes to Sofar's backend. Viewable with the
+        raw-messages API:
+            https://api.sofarocean.com/api/raw-messages?spotterId={SPOT-ID}
+
+        Args:
+            data (bytes): Bytes to transmit
+
+        Returns:
+            int: The number of bytes serially written to the companion device
+            None: Device could not properly send data serially
+        """
         topic = b"spotter/transmit-data"
         packet = (
             self.get_pub_header()
@@ -129,7 +182,23 @@ class BristlemouthSerial:
         cobs = self.finalize_packet(packet)
         return self.lock_uart_and_write_bytes(cobs)
 
-    def spotter_log(self, filename: str, data: str):
+    def spotter_log(self, filename: str, data: str) -> int | None:
+        """
+        Log message to spotter SD card.
+
+        Logs string to spotter's SD card at specified file. This file will be
+        associated with the companion devices node_id and found in the
+        following directory:
+            /bm/{node_id}/{filename}.log
+
+        Args:
+            filename (str): File name to write data to
+            data (str): String to write to file
+
+        Returns:
+            int: The number of bytes serially written to the companion device
+            None: Device could not properly send data serially
+        """
         topic = b"spotter/fprintf"
         packet = (
             self.get_pub_header()
@@ -145,7 +214,18 @@ class BristlemouthSerial:
         cobs = self.finalize_packet(packet)
         return self.lock_uart_and_write_bytes(cobs)
 
-    def spotter_print(self, data: str):
+    def spotter_print(self, data: str) -> int | None:
+        """
+        Print data to Spotter's console.
+
+
+        Args:
+            data (str): String to display on Spotter console
+
+        Returns:
+            int: The number of bytes serially written to the companion device
+            None: Device could not properly send data serially
+        """
         topic = b"spotter/printf"
         packet = (
             self.get_pub_header()
@@ -160,19 +240,41 @@ class BristlemouthSerial:
         cobs = self.finalize_packet(packet)
         return self.lock_uart_and_write_bytes(cobs)
 
-    def lock_uart_and_write_bytes(self, bytes):
-        fcntl.lockf(self.uart, fcntl.LOCK_EX)
-        self.uart.write(bytes)
-        fcntl.lockf(self.uart, fcntl.LOCK_UN)
+    def lock_uart_and_write_bytes(self, bytes) -> int | None:
+        """
+        Lock UART interface and write raw bytes to serial interface
 
-    def finalize_packet(self, packet: bytearray):
+        Returns:
+            int: The number of bytes serially written to the companion device
+            None: Device could not properly send data serially
+        """
+        fcntl.lockf(self.uart, fcntl.LOCK_EX)
+        written = self.uart.write(bytes)
+        fcntl.lockf(self.uart, fcntl.LOCK_UN)
+        return written
+
+    def finalize_packet(self, packet: bytearray) -> bytes:
+        """
+        Used to add CRC and COBS encode packets.
+
+        Returns:
+            bytes: COBS encoded packet
+        """
         checksum = self.crc(0, packet)
         packet[2] = checksum & 0xFF
         packet[3] = (checksum >> 8) & 0xFF
         cobs = self.cobs_encode(packet) + b"\x00"
         return cobs
 
-    def get_pub_header(self):
+    def get_pub_header(self) -> bytearray:
+        """
+        Header used for publishing data to companion device.
+
+        Header bytes for serial publish message.
+
+        Returns:
+            bytearray: Bytes for publish header
+        """
         return (
             bytearray.fromhex("02000000")
             + self.node_id.to_bytes(8, "little")
@@ -180,7 +282,16 @@ class BristlemouthSerial:
         )
 
     # Adapted from https://github.com/cmcqueen/cobs-python
-    def cobs_encode(self, in_bytes: bytes):
+    def cobs_encode(self, in_bytes: bytes) -> bytes:
+        """
+        COBS encode input data.
+
+        Args:
+            in_bytes (bytes): Bytes to COBS encode
+
+        Returns:
+            bytes: COBS encoded bytes
+        """
         final_zero = True
         out_bytes = bytearray()
         idx = 0
@@ -203,7 +314,17 @@ class BristlemouthSerial:
             out_bytes += in_bytes[search_start_idx:idx]
         return bytes(out_bytes)
 
-    def crc(self, seed: int, src: bytes):
+    def crc(self, seed: int, src: bytes) -> int:
+        """
+        CRC16 calculation based on CCIT.
+
+        Args:
+            seed (int): Initial seed for the CRC16 calculation
+            src (bytes): Data to calculate the CRC of
+
+        Returns:
+            int: Calculated CRC16
+        """
         e, f = 0, 0
         for i in src:
             e = (seed ^ i) & 0xFF
