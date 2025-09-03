@@ -109,7 +109,8 @@ class BristlemouthSerial:
         Read incoming serial data until an idle line is detected.
 
         Handles the data based on the type of packet that has been
-        received.
+        received. This function should be serviced as often as possible,
+        possibly in its own thread/process.
 
         Args:
             timeout_s (float): Timeout in seconds to wait for incoming serial
