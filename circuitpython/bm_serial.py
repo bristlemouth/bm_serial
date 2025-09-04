@@ -164,6 +164,9 @@ class BristlemouthSerial:
         This message transmits raw bytes to Sofar's backend. Viewable with the
         raw-messages API:
             https://api.sofarocean.com/api/raw-messages?spotterId={SPOT-ID}
+        Note, this API requires a Sofar user API token which can be retrieved
+        here:
+            https://spotter.sofarocean.com/api
 
         Args:
             data (bytes): Bytes to transmit
