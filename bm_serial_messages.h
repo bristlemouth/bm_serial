@@ -42,6 +42,9 @@ typedef enum {
 
   BM_SERIAL_BAUD_RATE_REQ = 0x70,
   BM_SERIAL_BAUD_RATE_REPLY = 0x71,
+
+  BM_SERIAL_POWER_STATUS_REQ = 0x74,
+  BM_SERIAL_POWER_STATUS_REPLY = 0x75,
 } bm_serial_message_t;
 
 typedef struct {
@@ -226,3 +229,10 @@ typedef struct {
   // and num_pubs to (num_pubs + num_subs - 1) to access the subscribed resources.
   uint8_t resource_list[0];
 } __attribute__((packed)) bm_serial_resource_table_reply_t;
+
+typedef struct {
+  // Total remaining time the network will be powered on
+  uint32_t remaining_on_ms;
+  // Time the network will be off
+  uint32_t remaining_off_ms;
+} __attribute__((packed)) bm_serial_power_status_reply_data_t;

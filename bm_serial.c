@@ -970,6 +970,44 @@ bm_serial_error_e bm_serial_send_baud_rate_reply(void) {
   return BM_SERIAL_OK;
 }
 
+bm_serial_error_e bm_serial_send_power_stats_request(void) {
+  uint16_t message_len = sizeof(bm_serial_packet_t);
+  bm_serial_packet_t *packet =
+      _bm_serial_get_packet(BM_SERIAL_POWER_STATUS_REQ, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_POWER_STATUS_REQ)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+bm_serial_error_e bm_serial_send_power_stats_reply(bm_serial_power_status_reply_data_t reply) {
+  uint16_t message_len =
+      sizeof(bm_serial_packet_t) + sizeof(bm_serial_power_status_reply_data_t);
+  bm_serial_packet_t *packet =
+      _bm_serial_get_packet(BM_SERIAL_POWER_STATUS_REPLY, 0, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  bm_serial_power_status_reply_data_t *power_payload =
+      (bm_serial_power_status_reply_data_t *)packet->payload;
+  *power_payload = reply;
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_POWER_STATUS_REPLY)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
 // Process bm_serial packet (not COBS anymore!)
 bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
   bm_serial_error_e rval = BM_SERIAL_OK;
@@ -1261,6 +1299,20 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
     case BM_SERIAL_BAUD_RATE_REPLY: {
       if (_callbacks.baud_rate_negotiation_reply_fn) {
         _callbacks.baud_rate_negotiation_reply_fn();
+      }
+      break;
+    }
+    case BM_SERIAL_POWER_STATUS_REQ: {
+      if (_callbacks.power_stats_request_fn) {
+        _callbacks.power_stats_request_fn();
+      }
+      break;
+    }
+    case BM_SERIAL_POWER_STATUS_REPLY: {
+      if (_callbacks.power_stats_reply_fn) {
+        bm_serial_power_status_reply_data_t *reply =
+            (bm_serial_power_status_reply_data_t *)packet->payload;
+        _callbacks.power_stats_reply_fn(*reply);
       }
       break;
     }
