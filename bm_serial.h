@@ -115,6 +115,10 @@ typedef struct {
 
   // Function called when there is a baud rate negotiation reply
   bool (*baud_rate_negotiation_reply_fn)(void);
+
+  bool (*power_stats_request_fn)(void);
+
+  bool (*power_stats_reply_fn)(bm_serial_power_status_reply_data_t stats);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -188,6 +192,9 @@ bm_serial_error_e bm_serial_send_node_id_reply(uint64_t node_id);
 
 bm_serial_error_e bm_serial_send_baud_rate_request(uint32_t baud);
 bm_serial_error_e bm_serial_send_baud_rate_reply(void);
+
+bm_serial_error_e bm_serial_send_power_stats_request(void);
+bm_serial_error_e bm_serial_send_power_stats_reply(bm_serial_power_status_reply_data_t reply);
 
 #ifdef __cplusplus
 }
