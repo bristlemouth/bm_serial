@@ -81,6 +81,38 @@ static bm_serial_packet_t *_bm_serial_get_packet(bm_serial_message_t type, uint8
 }
 
 /*!
+ @brief Serialize And Send bm_serial Message
+
+ @param message Message type to serialize
+ @param flags Flags for message
+ @param data Data to send with message
+ @param size Size of data
+
+ @return BM_SERIAL_OUT_OF_MEMORY if packet cannot be created
+         BM_SERIAL_TX_ERR if message fails to transmit
+         BM_SERIAL_OK if successful
+ */
+static bm_serial_error_e serialize_send_message(bm_serial_message_t message, uint8_t flags,
+                                                void *data, uint32_t size) {
+  uint16_t message_len = sizeof(bm_serial_packet_t) + size;
+  bm_serial_packet_t *packet = _bm_serial_get_packet(message, flags, message_len);
+
+  if (!packet) {
+    return BM_SERIAL_OUT_OF_MEMORY;
+  }
+
+  if (size) {
+    memcpy(packet->payload, data, size);
+  }
+  packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+  if (!_callbacks.tx_fn((uint8_t *)packet, message_len, message)) {
+    return BM_SERIAL_TX_ERR;
+  }
+
+  return BM_SERIAL_OK;
+}
+
+/*!
   Send raw bm_serial data
 
   \param[in] type bm_serial message type
@@ -1008,6 +1040,11 @@ bm_serial_error_e bm_serial_send_power_stats_reply(bm_serial_power_status_reply_
   return BM_SERIAL_OK;
 }
 
+bm_serial_error_e bm_serial_send_usv_metrics(bm_serial_usv_metrics_t metrics) {
+  return serialize_send_message(BM_SERIAL_USV_METRICS, 0, &metrics,
+                                sizeof(bm_serial_usv_metrics_t));
+}
+
 // Process bm_serial packet (not COBS anymore!)
 bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t len) {
   bm_serial_error_e rval = BM_SERIAL_OK;
@@ -1313,6 +1350,13 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
         bm_serial_power_status_reply_data_t *reply =
             (bm_serial_power_status_reply_data_t *)packet->payload;
         _callbacks.power_stats_reply_fn(*reply);
+      }
+      break;
+    }
+    case BM_SERIAL_USV_METRICS: {
+      if (_callbacks.usv_metrics_fn) {
+        bm_serial_usv_metrics_t *metrics = (bm_serial_usv_metrics_t *)packet->payload;
+        _callbacks.usv_metrics_fn(*metrics);
       }
       break;
     }

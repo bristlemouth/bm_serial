@@ -451,3 +451,34 @@ TEST_F(NCPTest, RebootInfoTest) {
             BM_SERIAL_OK);
   EXPECT_TRUE(reboot_info_fn_called);
 }
+
+static bm_serial_usv_metrics_t fake_metrics = {
+    .groundspeed = 10.12345,
+    .xacc = -1000,
+    .yacc = 1000,
+    .zacc = -998,
+    .xgyro = 300,
+    .ygyro = -12,
+    .zgyro = 1300,
+    .xmag = 0,
+    .ymag = 3000,
+    .zmag = -3000,
+    .throttle = 100,
+};
+static bool metrics_fn_called = false;
+
+static bool fake_usv_metrics_fn(bm_serial_usv_metrics_t metrics) {
+  EXPECT_EQ(memcmp(&metrics, &fake_metrics, sizeof(bm_serial_usv_metrics_t)), 0);
+  metrics_fn_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, USVMetrics) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.usv_metrics_fn = fake_usv_metrics_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  EXPECT_EQ(bm_serial_send_usv_metrics(fake_metrics), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len),
+            BM_SERIAL_OK);
+  EXPECT_TRUE(metrics_fn_called);
+}
