@@ -240,20 +240,26 @@ typedef struct {
 } __attribute__((packed)) bm_serial_power_status_reply_data_t;
 
 typedef struct {
-  // USV speed
-  float groundspeed;
-  // USV realtime accelerometer readings
-  int16_t xacc;
-  int16_t yacc;
-  int16_t zacc;
-  // USV realtime gyroscope readings
-  int16_t xgyro;
-  int16_t ygyro;
-  int16_t zgyro;
-  // USV realtime magnetometer readings
-  int16_t xmag;
-  int16_t ymag;
-  int16_t zmag;
-  // USV engine throttle
-  uint16_t throttle;
+  bool has_imu;
+  struct {
+    // USV realtime accelerometer readings
+    int16_t xacc;
+    int16_t yacc;
+    int16_t zacc;
+    // USV realtime gyroscope readings
+    int16_t xgyro;
+    int16_t ygyro;
+    int16_t zgyro;
+    // USV realtime magnetometer readings
+    int16_t xmag;
+    int16_t ymag;
+    int16_t zmag;
+  } imu;
+  bool has_vfr;
+  struct {
+    // USV engine throttle
+    uint16_t throttle;
+    // USV speed
+    float groundspeed;
+  } vfr;
 } __attribute__((packed)) bm_serial_usv_metrics_t;
