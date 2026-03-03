@@ -469,8 +469,8 @@ static bm_serial_usv_metrics_t fake_metrics = {
     .has_vfr = true,
     .vfr =
         {
-            .groundspeed = 10.12345,
             .throttle = 100,
+            .groundspeed = 10.12345,
         },
 };
 static bool metrics_fn_called = false;
