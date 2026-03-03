@@ -119,6 +119,8 @@ typedef struct {
   bool (*power_stats_request_fn)(void);
 
   bool (*power_stats_reply_fn)(bm_serial_power_status_reply_data_t stats);
+
+  bool (*usv_metrics_fn)(bm_serial_usv_metrics_t metrics);
 } bm_serial_callbacks_t;
 
 typedef enum {
@@ -195,6 +197,8 @@ bm_serial_error_e bm_serial_send_baud_rate_reply(void);
 
 bm_serial_error_e bm_serial_send_power_stats_request(void);
 bm_serial_error_e bm_serial_send_power_stats_reply(bm_serial_power_status_reply_data_t reply);
+
+bm_serial_error_e bm_serial_send_usv_metrics(bm_serial_usv_metrics_t metrics);
 
 #ifdef __cplusplus
 }

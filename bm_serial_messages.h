@@ -45,6 +45,8 @@ typedef enum {
 
   BM_SERIAL_POWER_STATUS_REQ = 0x74,
   BM_SERIAL_POWER_STATUS_REPLY = 0x75,
+
+  BM_SERIAL_USV_METRICS = 0x80,
 } bm_serial_message_t;
 
 typedef struct {
@@ -236,3 +238,28 @@ typedef struct {
   // Time the network will be off
   uint32_t remaining_off_ms;
 } __attribute__((packed)) bm_serial_power_status_reply_data_t;
+
+typedef struct {
+  bool has_imu;
+  struct {
+    // USV realtime accelerometer readings
+    int16_t xacc;
+    int16_t yacc;
+    int16_t zacc;
+    // USV realtime gyroscope readings
+    int16_t xgyro;
+    int16_t ygyro;
+    int16_t zgyro;
+    // USV realtime magnetometer readings
+    int16_t xmag;
+    int16_t ymag;
+    int16_t zmag;
+  } imu;
+  bool has_vfr;
+  struct {
+    // USV engine throttle
+    uint16_t throttle;
+    // USV speed
+    float groundspeed;
+  } vfr;
+} __attribute__((packed)) bm_serial_usv_metrics_t;
