@@ -455,17 +455,23 @@ TEST_F(NCPTest, RebootInfoTest) {
 static bm_serial_usv_metrics_t fake_metrics = {
     .has_imu = true,
     .has_vfr = true,
-    .imu.xacc = -1000,
-    .imu.yacc = 1000,
-    .imu.zacc = -998,
-    .imu.xgyro = 300,
-    .imu.ygyro = -12,
-    .imu.zgyro = 1300,
-    .imu.xmag = 0,
-    .imu.ymag = 3000,
-    .imu.zmag = -3000,
-    .vfr.groundspeed = 10.12345,
-    .vfr.throttle = 100,
+    .imu =
+        {
+            .xacc = -1000,
+            .yacc = 1000,
+            .zacc = -998,
+            .xgyro = 300,
+            .ygyro = -12,
+            .zgyro = 1300,
+            .xmag = 0,
+            .ymag = 3000,
+            .zmag = -3000,
+        },
+    .vfr =
+        {
+            .groundspeed = 10.12345,
+            .throttle = 100,
+        },
 };
 static bool metrics_fn_called = false;
 
