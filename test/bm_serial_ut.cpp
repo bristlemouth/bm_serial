@@ -454,7 +454,6 @@ TEST_F(NCPTest, RebootInfoTest) {
 
 static bm_serial_usv_metrics_t fake_metrics = {
     .has_imu = true,
-    .has_vfr = true,
     .imu =
         {
             .xacc = -1000,
@@ -467,6 +466,7 @@ static bm_serial_usv_metrics_t fake_metrics = {
             .ymag = 3000,
             .zmag = -3000,
         },
+    .has_vfr = true,
     .vfr =
         {
             .groundspeed = 10.12345,
