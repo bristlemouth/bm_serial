@@ -380,6 +380,35 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, BmConfigCr
   return rval;
 }
 
+bm_serial_error_e bm_serial_send_network_info_chunk(uint32_t total_size, uint32_t offset,
+                                                    uint16_t length, uint8_t *data) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+  do {
+
+    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(BmNetworkInfoChunk) + length;
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_NETWORK_INFO_CHUNK, 0, message_len);
+
+    if (!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    BmNetworkInfoChunk *chunk = (BmNetworkInfoChunk *)packet->payload;
+    chunk->total_size = total_size;
+    chunk->offset = offset;
+    chunk->length = length;
+    memcpy(chunk->data, data, length);
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_NETWORK_INFO_CHUNK)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+
+  } while (0);
+  return rval;
+}
+
 /*!
   Send out a self test request or response
 
@@ -1273,6 +1302,16 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       }
       break;
     }
+
+    case BM_SERIAL_NETWORK_INFO_CHUNK: {
+      if (_callbacks.network_info_chunk_fn) {
+        BmNetworkInfoChunk *chunk = (BmNetworkInfoChunk *)packet->payload;
+        _callbacks.network_info_chunk_fn(chunk->total_size, chunk->offset, chunk->length,
+                                         chunk->data);
+      }
+      break;
+    }
+    
     case BM_SERIAL_NETWORK_INFO: {
       if (_callbacks.network_info_fn) {
         BmNetworkInfo *network_info = (BmNetworkInfo *)packet->payload;
