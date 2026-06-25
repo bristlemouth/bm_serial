@@ -157,6 +157,13 @@ typedef struct {
 } __attribute__((packed)) bm_serial_reboot_info_t;
 
 typedef struct {
+  uint32_t total_size;
+  uint32_t offset;
+  uint16_t length;
+  uint8_t data[0];
+} __attribute__((packed)) BmNetworkInfoChunk;
+
+typedef struct {
   // Node ID of the target node for which the request is being made. (Zeroed = all nodes)
   uint64_t target_node_id;
 } __attribute__((packed)) bm_serial_device_info_request_t;
