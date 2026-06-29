@@ -16,6 +16,7 @@ typedef enum {
   BM_SERIAL_SELF_TEST = 0x08,
   BM_SERIAL_NETWORK_INFO = 0x09,
   BM_SERIAL_REBOOT_INFO = 0x0A,
+  BM_SERIAL_NETWORK_INFO_CHUNK = 0x0B,
 
   BM_SERIAL_DFU_START = 0x30,
   BM_SERIAL_DFU_CHUNK = 0x31,
@@ -154,6 +155,13 @@ typedef struct {
   uint32_t pc;
   uint32_t lr;
 } __attribute__((packed)) bm_serial_reboot_info_t;
+
+typedef struct {
+  uint32_t total_size;
+  uint32_t offset;
+  uint16_t length;
+  uint8_t data[0];
+} __attribute__((packed)) BmNetworkInfoChunk;
 
 typedef struct {
   // Node ID of the target node for which the request is being made. (Zeroed = all nodes)
