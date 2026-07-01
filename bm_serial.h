@@ -193,7 +193,7 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, BmConfigCr
                                               uint8_t *cbor_config_map);
 
 bm_serial_error_e bm_serial_send_network_info_chunk(uint32_t total_size, uint32_t offset,
-                                                    uint16_t length, uint8_t *data);
+                                                    uint16_t length, uint16_t num_nodes, uint8_t *data);
                                             
 bm_serial_error_e bm_serial_send_node_id_request(void);
 bm_serial_error_e bm_serial_send_node_id_reply(uint64_t node_id);
