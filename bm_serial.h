@@ -92,7 +92,7 @@ typedef struct {
   bool (*network_info_fn)(BmNetworkInfo *network_info);
 
   // Function called when a network info chunk is received.
-  bool (*network_info_chunk_fn)(uint32_t total_size, uint32_t offset, uint16_t length, uint8_t *data); 
+  bool (*network_info_chunk_fn)(uint32_t total_size, uint32_t offset, uint16_t length, uint16_t num_nodes, uint8_t *data); 
 
   // Function called when a BCMP info request is received.
   bool (*bcmp_info_request_fn)(uint64_t node_id);
