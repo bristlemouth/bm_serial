@@ -160,6 +160,7 @@ typedef struct {
   uint32_t total_size;
   uint32_t offset;
   uint16_t length;
+  uint16_t num_nodes;
   uint8_t data[0];
 } __attribute__((packed)) BmNetworkInfoChunk;
 

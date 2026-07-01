@@ -381,7 +381,7 @@ bm_serial_error_e bm_serial_send_network_info(uint32_t network_crc32, BmConfigCr
 }
 
 bm_serial_error_e bm_serial_send_network_info_chunk(uint32_t total_size, uint32_t offset,
-                                                    uint16_t length, uint8_t *data) {
+                                                    uint16_t length, uint16_t num_nodes, uint8_t *data) {
   bm_serial_error_e rval = BM_SERIAL_OK;
   do {
 
@@ -397,6 +397,7 @@ bm_serial_error_e bm_serial_send_network_info_chunk(uint32_t total_size, uint32_
     chunk->total_size = total_size;
     chunk->offset = offset;
     chunk->length = length;
+    chunk->num_nodes = num_nodes;
     memcpy(chunk->data, data, length);
     packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
 
@@ -1306,7 +1307,7 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
     case BM_SERIAL_NETWORK_INFO_CHUNK: {
       if (_callbacks.network_info_chunk_fn) {
         BmNetworkInfoChunk *chunk = (BmNetworkInfoChunk *)packet->payload;
-        _callbacks.network_info_chunk_fn(chunk->total_size, chunk->offset, chunk->length,
+        _callbacks.network_info_chunk_fn(chunk->total_size, chunk->offset, chunk->length, chunk->num_nodes,
                                          chunk->data);
       }
       break;
