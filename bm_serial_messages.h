@@ -47,6 +47,9 @@ typedef enum {
   BM_SERIAL_POWER_STATUS_REQ = 0x74,
   BM_SERIAL_POWER_STATUS_REPLY = 0x75,
 
+  BM_SERIAL_METRICS_REQ = 0x76,
+  BM_SERIAL_METRICS_REPLY = 0x77,
+
   BM_SERIAL_USV_METRICS = 0x80,
 } bm_serial_message_t;
 
@@ -247,6 +250,20 @@ typedef struct {
   // Time the network will be off
   uint32_t remaining_off_ms;
 } __attribute__((packed)) bm_serial_power_status_reply_data_t;
+
+typedef struct {
+  // Node ID of the target node for which the request is being made. (Zeroed = all nodes)
+  uint64_t target_node_id;
+} __attribute__((packed)) bm_serial_metrics_request_t;
+
+typedef struct {
+  // Node ID of the node the metrics came from
+  uint64_t node_id;
+  // Length of the human-readable metrics text
+  uint16_t text_len;
+  // Human-readable metrics text
+  char text[0];
+} __attribute__((packed)) bm_serial_metrics_reply_t;
 
 typedef struct {
   bool has_imu;

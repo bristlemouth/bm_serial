@@ -490,3 +490,67 @@ TEST_F(NCPTest, USVMetrics) {
             BM_SERIAL_OK);
   EXPECT_TRUE(metrics_fn_called);
 }
+
+static bool metrics_request_fn_called = false;
+static uint64_t metrics_request_node_id = 0;
+
+static bool fake_metrics_request_fn(uint64_t node_id) {
+  metrics_request_node_id = node_id;
+  metrics_request_fn_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, MetricsRequestTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.metrics_request_fn = fake_metrics_request_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  metrics_request_fn_called = false;
+  metrics_request_node_id = 0;
+
+  EXPECT_EQ(bm_serial_send_metrics_request(0x0123456789abcdef), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len),
+            BM_SERIAL_OK);
+  EXPECT_TRUE(metrics_request_fn_called);
+  EXPECT_EQ(metrics_request_node_id, 0x0123456789abcdefULL);
+}
+
+TEST_F(NCPTest, MetricsRequestAllNodesTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.metrics_request_fn = fake_metrics_request_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  metrics_request_fn_called = false;
+  metrics_request_node_id = 0xFF;
+
+  EXPECT_EQ(bm_serial_send_metrics_request(0), BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len),
+            BM_SERIAL_OK);
+  EXPECT_TRUE(metrics_request_fn_called);
+  EXPECT_EQ(metrics_request_node_id, 0ULL);
+}
+
+static bool metrics_reply_fn_called = false;
+static const char fake_metrics_text[] =
+    "{\"version\": 1, \"node_id\": 81985529216486895, \"data\": "
+    "{\"network_port_stats\": {\"num_ports\": 2, \"sqi_1\": 7, \"mse_1\": 32}}}";
+
+static bool fake_metrics_reply_fn(uint64_t node_id, const char *text, uint16_t text_len) {
+  EXPECT_EQ(node_id, 0x0123456789abcdefULL);
+  EXPECT_EQ(text_len, (uint16_t)strlen(fake_metrics_text));
+  EXPECT_EQ(memcmp(text, fake_metrics_text, text_len), 0);
+  metrics_reply_fn_called = true;
+  return true;
+}
+
+TEST_F(NCPTest, MetricsReplyTest) {
+  _callbacks.tx_fn = fake_tx_fn;
+  _callbacks.metrics_reply_fn = fake_metrics_reply_fn;
+  bm_serial_set_callbacks(&_callbacks);
+  metrics_reply_fn_called = false;
+
+  EXPECT_EQ(bm_serial_send_metrics_reply(0x0123456789abcdef, fake_metrics_text,
+                                         (uint16_t)strlen(fake_metrics_text)),
+            BM_SERIAL_OK);
+  EXPECT_EQ(bm_serial_process_packet((bm_serial_packet_t *)serial_tx_buff, serial_tx_buff_len),
+            BM_SERIAL_OK);
+  EXPECT_TRUE(metrics_reply_fn_called);
+}
