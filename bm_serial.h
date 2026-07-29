@@ -122,10 +122,10 @@ typedef struct {
   bool (*power_stats_request_fn)(void);
 
   bool (*power_stats_reply_fn)(bm_serial_power_status_reply_data_t stats);
-  
+
   // Function called when a metrics request is received 
   bool (*metrics_request_fn)(uint64_t node_id);
-  
+
   // Function called when a metrics reply is received
   bool (*metrics_reply_fn)(uint64_t node_id, const char *text, uint16_t text_len);
 

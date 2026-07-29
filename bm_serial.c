@@ -1071,23 +1071,11 @@ bm_serial_error_e bm_serial_send_power_stats_reply(bm_serial_power_status_reply_
 }
 
 bm_serial_error_e bm_serial_send_metrics_request(uint64_t node_id) {
-  bm_serial_error_e rval = BM_SERIAL_OK;
-  do {
-    uint16_t message_len = sizeof(bm_serial_packet_t) + sizeof(bm_serial_metrics_request_t);
-    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_METRICS_REQ, 0, message_len);
-    if (!packet) {
-      rval = BM_SERIAL_OUT_OF_MEMORY;
-      break;
-    }
-    bm_serial_metrics_request_t *req_msg = (bm_serial_metrics_request_t *)packet->payload;
-    req_msg->target_node_id = node_id;
-    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
-    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_METRICS_REQ)) {
-      rval = BM_SERIAL_TX_ERR;
-      break;
-    }
-  } while (0);
-  return rval;
+  bm_serial_metrics_request_t request = {
+      .target_node_id = node_id,
+  };
+  return serialize_send_message(BM_SERIAL_METRICS_REQ, 0, &request,
+                                sizeof(bm_serial_metrics_request_t));
 }
 
 bm_serial_error_e bm_serial_send_metrics_reply(uint64_t node_id, const char *text,
