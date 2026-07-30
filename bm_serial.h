@@ -123,6 +123,12 @@ typedef struct {
 
   bool (*power_stats_reply_fn)(bm_serial_power_status_reply_data_t stats);
 
+  // Function called when a metrics request is received 
+  bool (*metrics_request_fn)(uint64_t node_id);
+
+  // Function called when a metrics reply is received
+  bool (*metrics_reply_fn)(uint64_t node_id, const char *text, uint16_t text_len);
+
   bool (*usv_metrics_fn)(bm_serial_usv_metrics_t metrics);
 } bm_serial_callbacks_t;
 
@@ -203,6 +209,10 @@ bm_serial_error_e bm_serial_send_baud_rate_reply(void);
 
 bm_serial_error_e bm_serial_send_power_stats_request(void);
 bm_serial_error_e bm_serial_send_power_stats_reply(bm_serial_power_status_reply_data_t reply);
+
+bm_serial_error_e bm_serial_send_metrics_request(uint64_t node_id);
+bm_serial_error_e bm_serial_send_metrics_reply(uint64_t node_id, const char *text,
+                                               uint16_t text_len);
 
 bm_serial_error_e bm_serial_send_usv_metrics(bm_serial_usv_metrics_t metrics);
 
