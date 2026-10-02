@@ -218,6 +218,63 @@ bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t to
 }
 
 /*!
+  bm_serial publish PTP time data to topic
+
+  Same as bm_serial_pub, but uses the BM_SERIAL_PTP message type so the
+  bridge consumes the message itself instead of forwarding it to the
+  Bristlemouth bus
+
+  \param node_id node id of publisher
+  \param *topic topic to publish on
+  \param topic_len length of topic
+  \param *data data to publish
+  \param data_len length of data
+  \return BM_SERIAL_OK if ok, nonzero otherwise
+*/
+bm_serial_error_e bm_serial_ptp_pub(uint64_t node_id, const char *topic, uint16_t topic_len,
+                                    const uint8_t *data, uint16_t data_len, uint8_t type,
+                                    uint8_t version) {
+  bm_serial_error_e rval = BM_SERIAL_OK;
+
+  do {
+    rval = _bm_serial_validate_topic_and_cb(topic, topic_len);
+    if (rval) {
+      break;
+    }
+
+    uint16_t message_len =
+        sizeof(bm_serial_packet_t) + sizeof(bm_serial_pub_header_t) + topic_len + data_len;
+    bm_serial_packet_t *packet = _bm_serial_get_packet(BM_SERIAL_PTP, 0, message_len);
+    if (!packet) {
+      rval = BM_SERIAL_OUT_OF_MEMORY;
+      break;
+    }
+
+    bm_serial_pub_header_t *pub_header = (bm_serial_pub_header_t *)packet->payload;
+    pub_header->node_id = node_id;
+    pub_header->topic_len = topic_len;
+    pub_header->type = type;
+    pub_header->version = version;
+    memcpy(pub_header->topic, topic, topic_len);
+
+    // Copy data after payload (if any)
+    if (data && data_len) {
+      memcpy(&pub_header->topic[topic_len], data, data_len);
+    }
+
+    packet->crc16 = bm_serial_crc16_ccitt(0, (uint8_t *)packet, message_len);
+
+    if (!_callbacks.tx_fn((uint8_t *)packet, message_len, BM_SERIAL_PTP)) {
+      rval = BM_SERIAL_TX_ERR;
+      break;
+    }
+
+  } while (0);
+
+  return rval;
+}
+
+/*!
   bm_serial subscribe/unsubscribe from topic
 
   \param *topic topic to subscribe to

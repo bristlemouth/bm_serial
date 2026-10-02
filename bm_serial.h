@@ -153,6 +153,9 @@ bm_serial_error_e bm_serial_tx(bm_serial_message_t type, const uint8_t *buff, si
 bm_serial_error_e bm_serial_pub(uint64_t node_id, const char *topic, uint16_t topic_len,
                                 const uint8_t *data, uint16_t data_len, uint8_t type,
                                 uint8_t version);
+bm_serial_error_e bm_serial_ptp_pub(uint64_t node_id, const char *topic, uint16_t topic_len,
+                                    const uint8_t *data, uint16_t data_len, uint8_t type,
+                                    uint8_t version);
 bm_serial_error_e bm_serial_sub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_unsub(const char *topic, uint16_t topic_len);
 bm_serial_error_e bm_serial_set_rtc(bm_serial_time_t *time);
