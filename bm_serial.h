@@ -130,6 +130,10 @@ typedef struct {
   bool (*metrics_reply_fn)(uint64_t node_id, const char *text, uint16_t text_len);
 
   bool (*usv_metrics_fn)(bm_serial_usv_metrics_t metrics);
+
+  // Function called when PTP time data is received
+  bool (*ptp_fn)(const char *topic, uint16_t topic_len, uint64_t node_id,
+                 const uint8_t *payload, size_t len, uint8_t type, uint8_t version);
 } bm_serial_callbacks_t;
 
 typedef enum {

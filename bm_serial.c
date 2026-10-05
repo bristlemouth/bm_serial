@@ -1211,6 +1211,31 @@ bm_serial_error_e bm_serial_process_packet(bm_serial_packet_t *packet, size_t le
       break;
     }
 
+    case BM_SERIAL_PTP: {
+      if (!_callbacks.ptp_fn) {
+        break;
+      }
+
+      bm_serial_pub_header_t *pub_header = (bm_serial_pub_header_t *)packet->payload;
+
+      // Protect against topic length being incorrect
+      // (would result in overflow when subtracting from len to determine data
+      // len)
+      uint32_t non_data_len =
+          sizeof(bm_serial_packet_t) + sizeof(bm_serial_pub_header_t) + pub_header->topic_len;
+      if (non_data_len > len) {
+        rval = BM_SERIAL_INVALID_TOPIC_LEN;
+        break;
+      }
+
+      uint32_t data_len = len - non_data_len;
+      _callbacks.ptp_fn((const char *)pub_header->topic, pub_header->topic_len,
+                        pub_header->node_id, &pub_header->topic[pub_header->topic_len],
+                        data_len, pub_header->type, pub_header->version);
+
+      break;
+    }
+
     case BM_SERIAL_SUB: {
       if (!_callbacks.sub_fn) {
         break;
